@@ -1,0 +1,8 @@
+{
+  "name": "defi-energy-supply",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/r0ugeEngine/defi-energy-supply.git",
+  "author": "Bohdan",
+  "license": "MIT"
+}
