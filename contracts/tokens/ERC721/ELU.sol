@@ -8,9 +8,6 @@ import "./NFTTemplate.sol";
  * @author Bohdan
  */
 contract ELU is NFTTemplate {
-    /// @dev Linked NRGS token address as interface.
-    IERC721 public NRGS;
-
     /// @dev Linked users to suppliers.
     mapping(address => address) public userToSupplier;
 
@@ -20,9 +17,7 @@ contract ELU is NFTTemplate {
      * Sets `name` and `symbol` of ERC721 token.
      * Sets `NRGS` token link.
      */
-    constructor(IERC721 _NRGS) NFTTemplate("Electricity user token", "ELU") {
-        NRGS = _NRGS;
-    }
+    constructor() NFTTemplate("Electricity user token", "ELU") {}
 
     /// @dev Mints `to` address NRGS token
     /// @param to address to mint
