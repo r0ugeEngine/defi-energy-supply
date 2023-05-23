@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-
 import "../TokenRoles.sol";
 
 /**
@@ -11,9 +10,6 @@ import "../TokenRoles.sol";
  * @author Bohdan
  */
 contract NFTTemplate is TokenRoles, ERC721, AccessControl {
-    /// @dev Total amount of tokens
-    uint256 public totalTokens;
-
     /// @notice Constructor to initialize NFT token contract
     /// @dev Grants each roles to `msg.sender`
     /// @dev Sets `name` and `symbol` of ERC721 token
@@ -32,7 +28,6 @@ contract NFTTemplate is TokenRoles, ERC721, AccessControl {
      */
     function mint(address to, uint256 tokenId) public onlyRole(MINTER_ROLE) {
         _safeMint(to, tokenId);
-        totalTokens++;
     }
 
     /**
@@ -44,7 +39,6 @@ contract NFTTemplate is TokenRoles, ERC721, AccessControl {
      */
     function burn(uint256 tokenId) public virtual onlyRole(BURNER_ROLE) {
         _burn(tokenId);
-        totalTokens--;
     }
 
     /// @inheritdoc AccessControl
