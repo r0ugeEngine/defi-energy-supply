@@ -1,5 +1,4 @@
 import { HardhatUserConfig } from 'hardhat/config';
-import '@openzeppelin/hardhat-upgrades';
 import '@nomicfoundation/hardhat-toolbox';
 import 'hardhat-docgen';
 import dotenv from 'dotenv';
@@ -17,7 +16,7 @@ let privateKey: string;
 if (!process.env.PK) {
   throw new Error('Please set your PK in a .env file');
 } else {
-  privateKey = process.env.Pk;
+  privateKey = process.env.PK;
 }
 
 let alchemyApiKey: string;
@@ -48,52 +47,52 @@ const config: HardhatUserConfig = {
       },
     },
 
-    mainnet: {
-      url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
-      //url: 'http://localhost:8545',
-      //gasPrice: 22000000000,
-      chainId: 1,
-      accounts: {
-        mnemonic,
-      },
-    },
+    // mainnet: {
+    //   url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+    //   //url: 'http://localhost:8545',
+    //   //gasPrice: 22000000000,
+    //   chainId: 1,
+    //   accounts: {
+    //     mnemonic,
+    //   },
+    // },
 
-    mumbai: {
-      url: `https://polygon-mumbai.g.alchemy.com/v2/${alchemyApiKey}`,
-      accounts: [privateKey],
-      chainId: 80001,
-      // gas: 2100000,
-      // gasPrice: 8000000000,
-      gas: 'auto',
-    },
+    // mumbai: {
+    //   url: `https://polygon-mumbai.g.alchemy.com/v2/${alchemyApiKey}`,
+    //   accounts: [privateKey],
+    //   chainId: 80001,
+    //   // gas: 2100000,
+    //   // gasPrice: 8000000000,
+    //   gas: 'auto',
+    // },
 
-    polygon: {
-      // url: 'https://matic-mumbai.chainstacklabs.com',
-      url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-      accounts: {
-        count: 10,
-        initialIndex: 0,
-        mnemonic,
-        path: "m/44'/60'/0'/0",
-      },
-      chainId: 137,
-      // // gas: 'auto',
-      // gas: 7000000,
-      gasPrice: 1000000000000,
-    },
-    goerli: {
-      url: `https://eth-goerli.g.alchemy.com/v2/${alchemyApiKey}`,
-      accounts: {
-        count: 10,
-        initialIndex: 0,
-        mnemonic,
-        path: "m/44'/60'/0'/0",
-      },
-      chainId: 5,
-      // gas: 2100000,
-      // gasPrice: 8000000000,
-      gas: 'auto',
-    },
+    // polygon: {
+    //   // url: 'https://matic-mumbai.chainstacklabs.com',
+    //   url: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
+    //   accounts: {
+    //     count: 10,
+    //     initialIndex: 0,
+    //     mnemonic,
+    //     path: "m/44'/60'/0'/0",
+    //   },
+    //   chainId: 137,
+    //   // // gas: 'auto',
+    //   // gas: 7000000,
+    //   gasPrice: 1000000000000,
+    // },
+    // goerli: {
+    //   url: `https://eth-goerli.g.alchemy.com/v2/${alchemyApiKey}`,
+    //   accounts: {
+    //     count: 10,
+    //     initialIndex: 0,
+    //     mnemonic,
+    //     path: "m/44'/60'/0'/0",
+    //   },
+    //   chainId: 5,
+    //   // gas: 2100000,
+    //   // gasPrice: 8000000000,
+    //   gas: 'auto',
+    // },
   },
   paths: {
     artifacts: './artifacts',
