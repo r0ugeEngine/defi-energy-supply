@@ -58,10 +58,13 @@ contract StakingReward is StakingManagement {
         require(NRGS.balanceOf(supplier) > 0, "StakingReward: supplier is not registered");
         require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
 
+        totalSuppliers++;
         suppliers[supplier][tokenId] = Supplier({
             updatedAt: block.timestamp,
             pendingReward: _updateRewardRate(block.timestamp)
         });
+
+        emit EnterStaking(msg.sender, supplier, block.timestamp);
 
         return true;
     }
@@ -77,7 +80,9 @@ contract StakingReward is StakingManagement {
      * @return bool
      */
     function sendRewards(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
+        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
         require(_sendRewards(supplier, tokenId), "StakingReward: rewards sending failed");
+        emit RewardSent(msg.sender, supplier, block.timestamp);
         return true;
     }
 
@@ -92,10 +97,13 @@ contract StakingReward is StakingManagement {
      * @return bool
      */
     function exitStaking(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
+        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
         require(_sendRewards(supplier, tokenId), "StakingReward: rewards sending failed");
 
+        totalSuppliers--;
         delete suppliers[supplier][tokenId];
 
+        emit ExitStaking(msg.sender, supplier, block.timestamp);
         return true;
     }
 
@@ -138,6 +146,10 @@ contract StakingReward is StakingManagement {
     function _updateRewardRate(uint _updatedAt) private view returns (uint256 rewardToUser) {
         uint timePassed = block.timestamp - _updatedAt;
 
-        rewardToUser = rewardAmount.mulDiv(timePassed, totalSuppliers);
+        if (totalSuppliers > 0) {
+            rewardToUser = rewardAmount.mulDiv(timePassed, totalSuppliers);
+        } else {
+            rewardToUser = 0;
+        }
     }
 }
