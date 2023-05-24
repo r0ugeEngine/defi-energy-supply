@@ -1,5 +1,5 @@
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { ContractFactory } from "ethers";
+import { BigNumber, ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import { expect } from 'chai';
 import { FixedPointMath, MCGR, StakingReward } from "../typechain";
@@ -30,11 +30,11 @@ describe("Staking", function () {
     const stakingReward: StakingReward = await StakingReward.deploy(mcgr.address, nrgs.address, 10) as StakingReward;
     await stakingReward.deployed();
 
-    return { mcgr, nrgs, stakingReward, fixedPoint, deployer, otherAcc };
+    return { mcgr, MCGR, nrgs, NRGS, stakingReward, fixedPoint, deployer, otherAcc };
   }
 
   it('Deployed correctly', async () => {
-    const { mcgr, stakingReward, nrgs, fixedPoint, deployer } = await loadFixture(deployFixture);
+    const { mcgr, nrgs, stakingReward, fixedPoint, deployer } = await loadFixture(deployFixture);
 
     expect(mcgr.address).to.be.properAddress;
     expect(stakingReward.address).to.be.properAddress;
@@ -61,6 +61,64 @@ describe("Staking", function () {
 
     expect(await stakingReward.NRGS()).to.be.eq(nrgs.address);
     expect(await stakingReward.MCGR()).to.be.eq(mcgr.address);
+  });
+
+  describe("Management", function () {
+    it('Manager can change MCGR', async () => {
+      const { MCGR, stakingReward } = await loadFixture(deployFixture);
+
+      const oldMcgrAddress = await stakingReward.MCGR();
+
+      const newMcgr: MCGR = await MCGR.deploy() as MCGR;
+      await newMcgr.deployed();
+
+      const tx = await stakingReward.changeMCGR(newMcgr.address);
+      const newMcgrAddress = await stakingReward.MCGR();
+
+      expect(tx).to.emit(stakingReward, "MCGRchanged");
+      expect(newMcgrAddress).not.to.be.eq(oldMcgrAddress);
+      expect(newMcgrAddress).to.be.eq(newMcgr.address);
+    });
+
+    it('Manager can change NRGS', async () => {
+      const { NRGS, stakingReward } = await loadFixture(deployFixture);
+
+      const oldNrgsAddress = await stakingReward.NRGS();
+
+      const newNrgs: NRGS = await NRGS.deploy() as NRGS;
+      await newNrgs.deployed();
+
+      const tx = await stakingReward.changeNRGS(newNrgs.address);
+      const newNrgsAddress = await stakingReward.NRGS();
+
+      expect(tx).to.emit(stakingReward, "NRGSchanged");
+      expect(newNrgsAddress).not.to.be.eq(oldNrgsAddress);
+      expect(newNrgsAddress).to.be.eq(newNrgs.address);
+    });
+
+    it('Manager can change RewardAmount', async () => {
+      const { stakingReward } = await loadFixture(deployFixture);
+
+      const oldRewardAmount = await stakingReward.rewardAmount();
+
+      const tx = await stakingReward.changeRewardAmount(5);
+      const newRewardAmount = await stakingReward.rewardAmount();
+
+      expect(tx).to.emit(stakingReward, "RewardAmountChanged");
+      expect(newRewardAmount).not.to.be.eq(oldRewardAmount);
+      expect(newRewardAmount).to.be.eq(BigNumber.from(5));
+    });
+
+    it('only manager can change management functions', async () => {
+      const { stakingReward, mcgr, nrgs, otherAcc } = await loadFixture(deployFixture);
+      const errorMsg = 'AccessControl: account 0x1400a04079772bf421bf53f25da828c95d4fa8bb is missing role 0xa6b5d83d32632203555cb9b2c2f68a8d94da48cadd9266ac0d17babedb52ea5b';
+
+      await expect(stakingReward.connect(otherAcc).changeRewardAmount(5)).to.be.revertedWith(errorMsg);
+      await expect(stakingReward.connect(otherAcc).changeNRGS(nrgs.address)).to.be.revertedWith(errorMsg);
+      await expect(stakingReward.connect(otherAcc).changeMCGR(mcgr.address)).to.be.revertedWith(errorMsg);
+    });
+
+
   });
 
 });
