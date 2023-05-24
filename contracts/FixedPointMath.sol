@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 /// @notice Thrown when the resultant value in {mulDiv} overflows uint256.
 error PRBMath_MulDiv_Overflow(uint256 x, uint256 y, uint256 denominator);
 
+///@dev Library for Fixed Points
 library FixedPointMath {
     /// @notice Calculates floor(x*y÷denominator) with 512-bit precision.
     ///
