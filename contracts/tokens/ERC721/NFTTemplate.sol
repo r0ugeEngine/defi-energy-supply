@@ -19,28 +19,6 @@ contract NFTTemplate is TokenRoles, ERC721, AccessControl {
         _grantRole(BURNER_ROLE, msg.sender);
     }
 
-    /**
-     * @dev Mints `to` address NRGS token
-     * Requirements:
-     * - only `MINTER_ROLE`
-     *
-     * @param to address to mint
-     */
-    function mint(address to, uint256 tokenId) public onlyRole(MINTER_ROLE) {
-        _safeMint(to, tokenId);
-    }
-
-    /**
-     * @dev Burns `from` address NRGS token
-     * Requirements:
-     * - only `BURNER_ROLE`
-     *
-     *  @param tokenId uint256
-     */
-    function burn(uint256 tokenId) public virtual onlyRole(BURNER_ROLE) {
-        _burn(tokenId);
-    }
-
     /// @inheritdoc AccessControl
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);

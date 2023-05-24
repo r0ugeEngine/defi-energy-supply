@@ -19,18 +19,18 @@ contract ELU is NFTTemplate {
      */
     constructor() NFTTemplate("Electricity user token", "ELU") {}
 
-    /// @dev Mints `to` address NRGS token
+    /// @dev Mints `to` address ELU token
     /// @param to address to mint
-    function mint(address to, uint256 tokenId, address supplier) external {
-        mint(to, tokenId);
+    function mint(address to, uint256 tokenId, address supplier) external onlyRole(MINTER_ROLE) {
+        _safeMint(to, tokenId);
         userToSupplier[to] = supplier;
     }
 
-    /// @dev Burns `from` address NRGS token
+    /// @dev Burns `from` address ELU token
     /// @param tokenId uint256
-    function burn(uint256 tokenId) public override {
+    function burn(uint256 tokenId) public onlyRole(BURNER_ROLE) {
         address owner = ownerOf(tokenId);
-        super.burn(tokenId);
+        _burn(tokenId);
         delete userToSupplier[owner];
     }
 }

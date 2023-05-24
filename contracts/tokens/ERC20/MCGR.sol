@@ -15,7 +15,7 @@ contract MCGR is TokenRoles, ERC20, AccessControl {
     /// @notice Constructor to initialize ERC20 token contract
     /// @dev Grants each roles to `msg.sender`
     /// @dev Sets `name` and `symbol` of ERC20 token
-    constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
+    constructor() ERC20("Mictrogrid Reward token", "MCGR") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(BURNER_ROLE, msg.sender);
