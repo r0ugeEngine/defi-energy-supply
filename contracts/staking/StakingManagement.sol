@@ -33,6 +33,9 @@ abstract contract StakingManagement is AccessControl {
     /// @dev Amount of rewards to suppliers
     uint256 public rewardAmount;
 
+    /// @notice Constructor to initialize StakingManagement contract
+    /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
+    /// @dev Sets `MCGR` and `NRGS` tokens links and `rewardAmount` value
     constructor(IMCGR _MCGR, INFTTemplate _NRGS, uint256 _rewardAmount) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(STAKING_MANAGER_ROLE, msg.sender);
@@ -43,6 +46,14 @@ abstract contract StakingManagement is AccessControl {
         rewardAmount = _rewardAmount;
     }
 
+    /**
+     * @notice Changes MCGR link to another contract.
+     * Requirements:
+     * - `msg.sender` must have `STAKING_MANAGER_ROLE`
+     *
+     * @param _MCGR IMCGR
+     * @return bool
+     */
     function changeMCGR(IMCGR _MCGR) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
         emit MCGRchanged(msg.sender, _MCGR);
 
@@ -50,6 +61,14 @@ abstract contract StakingManagement is AccessControl {
         return true;
     }
 
+    /**
+     * @notice Changes NRGS link to another contract.
+     * Requirements:
+     * - `msg.sender` must have `STAKING_MANAGER_ROLE`
+     *
+     * @param _NRGS INFTTemplate
+     * @return bool
+     */
     function changeNRGS(INFTTemplate _NRGS) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
         emit NRGSchanged(msg.sender, _NRGS);
 
@@ -57,6 +76,14 @@ abstract contract StakingManagement is AccessControl {
         return true;
     }
 
+    /**
+     * @notice Changes reward amount to another amount.
+     * Requirements:
+     * - `msg.sender` must have `STAKING_MANAGER_ROLE`
+     *
+     * @param _newRewardAmount uint256
+     * @return bool
+     */
     function changeRewardAmount(uint256 _newRewardAmount) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
         emit RewardAmountChanged(msg.sender, _newRewardAmount);
 

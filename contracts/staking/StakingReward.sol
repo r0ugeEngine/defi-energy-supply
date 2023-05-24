@@ -33,12 +33,26 @@ contract StakingReward is StakingManagement {
     /// @dev Address to supplier
     mapping(address => mapping(uint => Supplier)) public suppliers;
 
+    /// @notice Constructor to initialize StakingReward contract
+    /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
+    /// @dev Sets `MCGR` and `NRGS` tokens links and `rewardAmount` value
     constructor(
         IMCGR _MCGR,
         INFTTemplate _NRGS,
         uint256 _rewardAmount
     ) StakingManagement(_MCGR, _NRGS, _rewardAmount) {}
 
+    /**
+     * @notice Enters staking process.
+     * Requirements:
+     * - `msg.sender` must have STAKING_MANAGER_ROLE
+     * - `supplier` must not be address 0
+     * - `supplier` must have NRGS token
+     *
+     * @param supplier address
+     * @param tokenId uint256
+     * @return bool
+     */
     function enterStaking(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
         require(supplier != address(0), "StakingReward: supplier is address 0");
         require(NRGS.balanceOf(supplier) > 0, "StakingReward: supplier is not registered");
@@ -52,11 +66,31 @@ contract StakingReward is StakingManagement {
         return true;
     }
 
+    /**
+     * @notice Sends rewards to suppliers.
+     * Requirements:
+     * - `msg.sender` must have STAKING_MANAGER_ROLE
+     * - `supplier` must be in staking
+     *
+     * @param supplier address
+     * @param tokenId uint256
+     * @return bool
+     */
     function sendRewards(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
         require(_sendRewards(supplier, tokenId), "StakingReward: rewards sending failed");
         return true;
     }
 
+    /**
+     * @notice Exits staking.
+     * Requirements:
+     * - `msg.sender` must have STAKING_MANAGER_ROLE
+     * - `supplier` must be in staking
+     *
+     * @param supplier address
+     * @param tokenId uint256
+     * @return bool
+     */
     function exitStaking(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
         require(_sendRewards(supplier, tokenId), "StakingReward: rewards sending failed");
 
@@ -65,6 +99,16 @@ contract StakingReward is StakingManagement {
         return true;
     }
 
+    /**
+     * @notice Updates rewards for `supplier`.
+     * Requirements:
+     * - `supplier` must be in staking
+     *
+     * @param supplier address
+     * @param tokenId uint256
+     * @return bool
+     * @return Supplier memory
+     */
     function updateRewards(address supplier, uint tokenId) public returns (bool, Supplier memory) {
         Supplier storage _supplier = suppliers[supplier][tokenId];
 
