@@ -7,14 +7,14 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../TokenRoles.sol";
 
 /**
- * @title MKGR token contract
+ * @title MCGR token contract
  * Can be used as staking reward token, or rewards for Oracle makers.
  * @author Bohdan
  */
-contract MKGR is TokenRoles, ERC20, AccessControl {
-    /// @notice Constructor to initialize NFT token contract
+contract MCGR is TokenRoles, ERC20, AccessControl {
+    /// @notice Constructor to initialize ERC20 token contract
     /// @dev Grants each roles to `msg.sender`
-    /// @dev Sets `name` and `symbol` of ERC721 token
+    /// @dev Sets `name` and `symbol` of ERC20 token
     constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
