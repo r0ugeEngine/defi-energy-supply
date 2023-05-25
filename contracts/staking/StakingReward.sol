@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "./StakingManagement.sol";
-import "../FixedPointMath.sol";
+import "../math/FixedPointMath.sol";
 
 import "../tokens/ERC20/interfaces/IMCGR.sol";
 import "../tokens/ERC721/interfaces/INFTTemplate.sol";
@@ -33,6 +33,16 @@ contract StakingReward is StakingManagement {
     /// @dev Address to supplier
     mapping(address => mapping(uint => Supplier)) public suppliers;
 
+    modifier zeroAddressCheck(address supplier) {
+        require(supplier != address(0), "StakingReward: supplier is address 0");
+        _;
+    }
+
+    modifier isCorrectOwner(address supplier, uint tokenId) {
+        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
+        _;
+    }
+
     /// @notice Constructor to initialize StakingReward contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
     /// @dev Sets `MCGR` and `NRGS` tokens links and `rewardAmount` value
@@ -53,11 +63,16 @@ contract StakingReward is StakingManagement {
      * @param tokenId uint256
      * @return bool
      */
-    function enterStaking(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
-        require(supplier != address(0), "StakingReward: supplier is address 0");
-        require(NRGS.balanceOf(supplier) > 0, "StakingReward: supplier is not registered");
-        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
-
+    function enterStaking(
+        address supplier,
+        uint256 tokenId
+    )
+        external
+        onlyRole(STAKING_MANAGER_ROLE)
+        zeroAddressCheck(supplier)
+        isCorrectOwner(supplier, tokenId)
+        returns (bool)
+    {
         totalSuppliers++;
         suppliers[supplier][tokenId] = Supplier({
             updatedAt: block.timestamp,
@@ -79,9 +94,17 @@ contract StakingReward is StakingManagement {
      * @param tokenId uint256
      * @return bool
      */
-    function sendRewards(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
-        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
-        require(_sendRewards(supplier, tokenId), "StakingReward: rewards sending failed");
+    function sendRewards(
+        address supplier,
+        uint256 tokenId
+    )
+        external
+        onlyRole(STAKING_MANAGER_ROLE)
+        zeroAddressCheck(supplier)
+        isCorrectOwner(supplier, tokenId)
+        returns (bool)
+    {
+        _sendRewards(supplier, tokenId);
         emit RewardSent(msg.sender, supplier, block.timestamp);
         return true;
     }
@@ -96,9 +119,17 @@ contract StakingReward is StakingManagement {
      * @param tokenId uint256
      * @return bool
      */
-    function exitStaking(address supplier, uint256 tokenId) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
-        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
-        require(_sendRewards(supplier, tokenId), "StakingReward: rewards sending failed");
+    function exitStaking(
+        address supplier,
+        uint256 tokenId
+    )
+        external
+        onlyRole(STAKING_MANAGER_ROLE)
+        zeroAddressCheck(supplier)
+        isCorrectOwner(supplier, tokenId)
+        returns (bool)
+    {
+        _sendRewards(supplier, tokenId);
 
         totalSuppliers--;
         delete suppliers[supplier][tokenId];
@@ -114,10 +145,12 @@ contract StakingReward is StakingManagement {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      * @return Supplier memory
      */
-    function updateRewards(address supplier, uint tokenId) public returns (bool, Supplier memory) {
+    function updateRewards(
+        address supplier,
+        uint tokenId
+    ) public zeroAddressCheck(supplier) isCorrectOwner(supplier, tokenId) returns (Supplier memory) {
         Supplier storage _supplier = suppliers[supplier][tokenId];
 
         require(_supplier.updatedAt > 0, "StakingReward: supplier is not entered with this token");
@@ -126,30 +159,21 @@ contract StakingReward is StakingManagement {
         _supplier.pendingReward = _updateRewardRate(_supplier.updatedAt);
         _supplier.updatedAt = block.timestamp;
 
-        return (true, _supplier);
+        return _supplier;
     }
 
-    function _sendRewards(address supplier, uint tokenId) private returns (bool) {
-        require(supplier != address(0), "StakingReward: supplier is address 0");
-
-        (bool success, Supplier memory _supplier) = updateRewards(supplier, tokenId);
-        require(success, "StakingReward: rewards update error");
+    function _sendRewards(address supplier, uint tokenId) private {
+        Supplier memory _supplier = updateRewards(supplier, tokenId);
 
         suppliers[supplier][tokenId].pendingReward = 0;
         suppliers[supplier][tokenId].updatedAt = block.timestamp;
 
         MCGR.mint(supplier, _supplier.pendingReward);
-
-        return true;
     }
 
     function _updateRewardRate(uint _updatedAt) private view returns (uint256 rewardToUser) {
         uint timePassed = block.timestamp - _updatedAt;
 
-        if (totalSuppliers > 0) {
-            rewardToUser = rewardAmount.mulDiv(timePassed, totalSuppliers);
-        } else {
-            rewardToUser = 0;
-        }
+        rewardToUser = rewardAmount.mulDiv(timePassed, totalSuppliers);
     }
 }

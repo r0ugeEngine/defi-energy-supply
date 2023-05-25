@@ -3,8 +3,6 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-import "../FixedPointMath.sol";
-
 import "../tokens/ERC20/interfaces/IMCGR.sol";
 import "../tokens/ERC721/interfaces/INFTTemplate.sol";
 
