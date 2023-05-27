@@ -5,7 +5,7 @@ import "./StakingManagement.sol";
 import "../math/FixedPointMath.sol";
 
 import "../tokens/ERC20/interfaces/IMCGR.sol";
-import "../tokens/ERC721/interfaces/INFTTemplate.sol";
+import "../tokens/ERC721/interfaces/INRGS.sol";
 
 /**
  * @title StakingReward contract for rewards management
@@ -46,11 +46,7 @@ contract StakingReward is StakingManagement {
     /// @notice Constructor to initialize StakingReward contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
     /// @dev Sets `MCGR` and `NRGS` tokens links and `rewardAmount` value
-    constructor(
-        IMCGR _MCGR,
-        INFTTemplate _NRGS,
-        uint256 _rewardAmount
-    ) StakingManagement(_MCGR, _NRGS, _rewardAmount) {}
+    constructor(IMCGR _MCGR, INRGS _NRGS, uint256 _rewardAmount) StakingManagement(_MCGR, _NRGS, _rewardAmount) {}
 
     /**
      * @notice Enters staking process.
