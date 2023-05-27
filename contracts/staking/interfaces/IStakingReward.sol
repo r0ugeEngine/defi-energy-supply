@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
  * @title Interface for StakingReward contract
  * @author Bohdan
  */
-interface StakingReward {
+interface IStakingReward {
     struct Supplier {
         uint256 updatedAt;
         uint256 pendingReward;
