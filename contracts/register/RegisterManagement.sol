@@ -32,6 +32,12 @@ abstract contract RegisterManagement is AccessControl {
     ///@dev Staking contract
     IStakingReward public staking;
 
+    /// @dev Throws if passed address 0 as parameter
+    modifier zeroAddressCheck(address supplier) {
+        require(supplier != address(0), "Register: supplier is address 0");
+        _;
+    }
+
     /// @notice Constructor to initialize StakingManagement contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `REGISTER_MANAGER_ROLE` roles to `msg.sender`
     /// @dev Sets `ELU`, `NRGS` tokens and `staking` contract links
@@ -52,7 +58,9 @@ abstract contract RegisterManagement is AccessControl {
      * @param _ELU IELU
      * @return bool
      */
-    function changeELU(IELU _ELU) external onlyRole(REGISTER_MANAGER_ROLE) returns (bool) {
+    function changeELU(
+        IELU _ELU
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(address(_ELU)) returns (bool) {
         emit ELUchanged(msg.sender, _ELU);
 
         ELU = _ELU;
@@ -67,7 +75,9 @@ abstract contract RegisterManagement is AccessControl {
      * @param _NRGS INRGS
      * @return bool
      */
-    function changeNRGS(INRGS _NRGS) external onlyRole(REGISTER_MANAGER_ROLE) returns (bool) {
+    function changeNRGS(
+        INRGS _NRGS
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(address(_NRGS)) returns (bool) {
         emit NRGSchanged(msg.sender, _NRGS);
 
         NRGS = _NRGS;
@@ -82,7 +92,9 @@ abstract contract RegisterManagement is AccessControl {
      * @param _staking IStakingReward
      * @return bool
      */
-    function changeStakingContract(IStakingReward _staking) external onlyRole(REGISTER_MANAGER_ROLE) returns (bool) {
+    function changeStakingContract(
+        IStakingReward _staking
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(address(_staking)) returns (bool) {
         emit StakingChanged(msg.sender, _staking);
 
         staking = _staking;

@@ -18,29 +18,6 @@ contract Register is RegisterManagement {
     ///@dev Emmited when a user unregisters as an Electricity user
     event UserUnregistered(address indexed sender, address indexed user, uint256 timestamp);
 
-    modifier zeroAddressCheck(address supplier) {
-        require(supplier != address(0), "Register: supplier is address 0");
-        _;
-    }
-
-    modifier isRegistered(
-        address token,
-        address supplier,
-        uint tokenId
-    ) {
-        require(IERC721(token).ownerOf(tokenId) == supplier, "Register: supplier is not registered");
-        _;
-    }
-
-    modifier isNotRegistered(
-        address token,
-        address supplier,
-        uint tokenId
-    ) {
-        require(!(IERC721(token).ownerOf(tokenId) == supplier), "Register: supplier is already registered");
-        _;
-    }
-
     /// @notice Constructor to initialize StakingManagement contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `REGISTER_MANAGER_ROLE` roles to `msg.sender`
     /// @dev Sets `ELU`, `NRGS` tokens and `staking` contract links
@@ -60,13 +37,7 @@ contract Register is RegisterManagement {
     function registerSupplier(
         address supplier,
         uint256 tokenId
-    )
-        external
-        onlyRole(REGISTER_MANAGER_ROLE)
-        zeroAddressCheck(supplier)
-        isNotRegistered(address(NRGS), supplier, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) returns (bool) {
         NRGS.mint(supplier, tokenId);
         staking.enterStaking(supplier, tokenId);
 
@@ -89,13 +60,7 @@ contract Register is RegisterManagement {
         address user,
         uint256 tokenId,
         address supplier
-    )
-        external
-        onlyRole(REGISTER_MANAGER_ROLE)
-        zeroAddressCheck(user)
-        isNotRegistered(address(ELU), user, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) zeroAddressCheck(supplier) returns (bool) {
         ELU.mint(user, tokenId, supplier);
 
         emit UserRegistered(msg.sender, user, block.timestamp);
@@ -116,13 +81,7 @@ contract Register is RegisterManagement {
     function unRegisterSupplier(
         address supplier,
         uint256 tokenId
-    )
-        external
-        onlyRole(REGISTER_MANAGER_ROLE)
-        zeroAddressCheck(supplier)
-        isRegistered(address(NRGS), supplier, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) returns (bool) {
         NRGS.burn(tokenId);
         staking.exitStaking(supplier, tokenId);
 
@@ -144,13 +103,7 @@ contract Register is RegisterManagement {
     function unRegisterElectricityUser(
         address user,
         uint256 tokenId
-    )
-        external
-        onlyRole(REGISTER_MANAGER_ROLE)
-        zeroAddressCheck(user)
-        isRegistered(address(ELU), user, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) returns (bool) {
         ELU.burn(tokenId);
 
         emit UserUnregistered(msg.sender, user, block.timestamp);
