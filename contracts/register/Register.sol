@@ -18,20 +18,26 @@ contract Register is RegisterManagement {
     ///@dev Emmited when a user unregisters as an Electricity user
     event UserUnregistered(address indexed sender, address indexed user, uint256 timestamp);
 
-    mapping(address => mapping(uint => bool)) public registeredSuppliers;
-    mapping(address => mapping(uint => bool)) public registeredUsers;
-
     modifier zeroAddressCheck(address supplier) {
         require(supplier != address(0), "Register: supplier is address 0");
         _;
     }
 
-    modifier isCorrectOwner(
+    modifier isRegistered(
         address token,
         address supplier,
         uint tokenId
     ) {
-        require(IERC721(token).ownerOf(tokenId) == supplier, "Register: supplier is not the owner of this token");
+        require(IERC721(token).ownerOf(tokenId) == supplier, "Register: supplier is not registered");
+        _;
+    }
+
+    modifier isNotRegistered(
+        address token,
+        address supplier,
+        uint tokenId
+    ) {
+        require(!(IERC721(token).ownerOf(tokenId) == supplier), "Register: supplier is already registered");
         _;
     }
 
@@ -58,14 +64,13 @@ contract Register is RegisterManagement {
         external
         onlyRole(REGISTER_MANAGER_ROLE)
         zeroAddressCheck(supplier)
-        isCorrectOwner(address(NRGS), supplier, tokenId)
+        isNotRegistered(address(NRGS), supplier, tokenId)
         returns (bool)
     {
-        require(isRegisteredSupplier(supplier, tokenId), "Register: supplier is already registered");
+        NRGS.mint(supplier, tokenId);
+        staking.enterStaking(supplier, tokenId);
+
         emit SupplierRegistered(msg.sender, supplier, block.timestamp);
-
-        registeredSuppliers[supplier];
-
         return true;
     }
 
@@ -82,17 +87,18 @@ contract Register is RegisterManagement {
      */
     function registerElectricityUser(
         address user,
-        uint256 tokenId
+        uint256 tokenId,
+        address supplier
     )
         external
         onlyRole(REGISTER_MANAGER_ROLE)
         zeroAddressCheck(user)
-        isCorrectOwner(address(ELU), user, tokenId)
+        isNotRegistered(address(ELU), user, tokenId)
         returns (bool)
     {
-        require(isRegisteredUser(user, tokenId), "Register: user is already registered");
-        emit UserRegistered(msg.sender, user, block.timestamp);
+        ELU.mint(user, tokenId, supplier);
 
+        emit UserRegistered(msg.sender, user, block.timestamp);
         return true;
     }
 
@@ -114,12 +120,13 @@ contract Register is RegisterManagement {
         external
         onlyRole(REGISTER_MANAGER_ROLE)
         zeroAddressCheck(supplier)
-        isCorrectOwner(address(NRGS), supplier, tokenId)
+        isRegistered(address(NRGS), supplier, tokenId)
         returns (bool)
     {
-        require(!isRegisteredSupplier(supplier, tokenId), "Register: supplier is not registered");
-        emit SupplierUnregistered(msg.sender, supplier, block.timestamp);
+        NRGS.burn(tokenId);
+        staking.exitStaking(supplier, tokenId);
 
+        emit SupplierUnregistered(msg.sender, supplier, block.timestamp);
         return true;
     }
 
@@ -128,7 +135,7 @@ contract Register is RegisterManagement {
      * Requirements:
      * - `msg.sender` must have REGISTER_MANAGER_ROLE
      * - `user` must not be address 0
-     * - `user` must have NRGS token
+     * - `user` must have ELU token
      *
      * @param user address
      * @param tokenId uint256
@@ -141,20 +148,12 @@ contract Register is RegisterManagement {
         external
         onlyRole(REGISTER_MANAGER_ROLE)
         zeroAddressCheck(user)
-        isCorrectOwner(address(ELU), user, tokenId)
+        isRegistered(address(ELU), user, tokenId)
         returns (bool)
     {
-        require(!isRegisteredUser(user, tokenId), "Register: user is already registered");
+        ELU.burn(tokenId);
+
         emit UserUnregistered(msg.sender, user, block.timestamp);
-
         return true;
-    }
-
-    function isRegisteredSupplier(address user, uint256 tokenId) public view returns (bool) {
-        return staking.suppliers(user, tokenId).updatedAt > 0 && registeredSuppliers[user][tokenId];
-    }
-
-    function isRegisteredUser(address user, uint tokenId) public view returns (bool) {
-        return registeredUsers[user][tokenId];
     }
 }
