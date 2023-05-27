@@ -33,11 +33,7 @@ contract StakingReward is StakingManagement {
     /// @dev Address to supplier
     mapping(address => mapping(uint => Supplier)) public suppliers;
 
-    modifier zeroAddressCheck(address supplier) {
-        require(supplier != address(0), "StakingReward: supplier is address 0");
-        _;
-    }
-
+    /// @dev Throws if passed not correct owner of tokenId
     modifier isCorrectOwner(address supplier, uint tokenId) {
         require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
         _;
@@ -118,13 +114,7 @@ contract StakingReward is StakingManagement {
     function exitStaking(
         address supplier,
         uint256 tokenId
-    )
-        external
-        onlyRole(STAKING_MANAGER_ROLE)
-        zeroAddressCheck(supplier)
-        isCorrectOwner(supplier, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(supplier) returns (bool) {
         _sendRewards(supplier, tokenId);
 
         totalSuppliers--;
@@ -147,10 +137,14 @@ contract StakingReward is StakingManagement {
         address supplier,
         uint tokenId
     ) public zeroAddressCheck(supplier) isCorrectOwner(supplier, tokenId) returns (Supplier memory) {
+        return _updateRewards(supplier, tokenId);
+    }
+
+    function _updateRewards(address supplier, uint tokenId) private returns (Supplier memory) {
         Supplier storage _supplier = suppliers[supplier][tokenId];
 
         require(_supplier.updatedAt > 0, "StakingReward: supplier is not entered with this token");
-        require(_supplier.updatedAt <= block.timestamp, "StakingReward: updatedAt error");
+        assert(_supplier.updatedAt <= block.timestamp);
 
         _supplier.pendingReward = _updateRewardRate(_supplier.updatedAt);
         _supplier.updatedAt = block.timestamp;
@@ -159,7 +153,7 @@ contract StakingReward is StakingManagement {
     }
 
     function _sendRewards(address supplier, uint tokenId) private {
-        Supplier memory _supplier = updateRewards(supplier, tokenId);
+        Supplier memory _supplier = _updateRewards(supplier, tokenId);
 
         suppliers[supplier][tokenId].pendingReward = 0;
         suppliers[supplier][tokenId].updatedAt = block.timestamp;

@@ -31,6 +31,12 @@ abstract contract StakingManagement is AccessControl {
     /// @dev Amount of rewards to suppliers
     uint256 public rewardAmount;
 
+    /// @dev Throws if passed address 0 as parameter
+    modifier zeroAddressCheck(address supplier) {
+        require(supplier != address(0), "StakingReward: supplier is address 0");
+        _;
+    }
+
     /// @notice Constructor to initialize StakingManagement contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
     /// @dev Sets `MCGR` and `NRGS` tokens links and `rewardAmount` value
@@ -52,7 +58,9 @@ abstract contract StakingManagement is AccessControl {
      * @param _MCGR IMCGR
      * @return bool
      */
-    function changeMCGR(IMCGR _MCGR) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
+    function changeMCGR(
+        IMCGR _MCGR
+    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(address(_MCGR)) returns (bool) {
         emit MCGRchanged(msg.sender, _MCGR);
 
         MCGR = _MCGR;
@@ -67,7 +75,9 @@ abstract contract StakingManagement is AccessControl {
      * @param _NRGS INRGS
      * @return bool
      */
-    function changeNRGS(INRGS _NRGS) external onlyRole(STAKING_MANAGER_ROLE) returns (bool) {
+    function changeNRGS(
+        INRGS _NRGS
+    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(address(_NRGS)) returns (bool) {
         emit NRGSchanged(msg.sender, _NRGS);
 
         NRGS = _NRGS;
