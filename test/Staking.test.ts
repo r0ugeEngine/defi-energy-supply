@@ -33,8 +33,8 @@ describe("Staking", function () {
     const stakingReward: StakingReward = await StakingReward.deploy(mcgr.address, nrgs.address, 10) as StakingReward;
     await stakingReward.deployed();
 
-    const minter = await mcgr.MINTER_ROLE();
-    await mcgr.grantRole(minter, stakingReward.address);
+    minter_role = await mcgr.MINTER_ROLE();
+    await mcgr.grantRole(minter_role, stakingReward.address);
 
     return { mcgr, MCGR, nrgs, NRGS, stakingReward, fixedPoint, deployer, otherAcc };
   }
@@ -53,7 +53,6 @@ describe("Staking", function () {
     expect(await nrgs.symbol()).to.be.eq("NRGS");
 
     admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
-    minter_role = await mcgr.MINTER_ROLE();
     burner_role = await mcgr.BURNER_ROLE();
     staking_role = await stakingReward.STAKING_MANAGER_ROLE();
 
@@ -65,7 +64,6 @@ describe("Staking", function () {
     expect(await nrgs.hasRole(minter_role, deployer.address)).to.be.true;
     expect(await nrgs.hasRole(burner_role, deployer.address)).to.be.true;
     expect(await stakingReward.hasRole(staking_role, deployer.address)).to.be.true;
-
 
     expect(await stakingReward.NRGS()).to.be.eq(nrgs.address);
     expect(await stakingReward.MCGR()).to.be.eq(mcgr.address);
