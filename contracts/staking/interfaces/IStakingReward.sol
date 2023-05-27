@@ -12,7 +12,7 @@ interface IStakingReward {
     }
 
     /// @dev Address to supplier
-    //mapping(address => mapping(uint => Supplier)) public suppliers;
+    function suppliers(address supplier, uint tokenId) external view returns (Supplier memory);
 
     /**
      * @notice Enters staking process.
