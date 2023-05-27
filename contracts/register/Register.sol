@@ -18,13 +18,11 @@ contract Register is RegisterManagement {
     ///@dev Emmited when a user unregisters as an Electricity user
     event UserUnregistered(address indexed sender, address indexed user, uint256 timestamp);
 
-    struct Supplier {
-        uint256 updatedAt;
-        uint256 pendingReward;
-    }
+    mapping(address => mapping(uint => bool)) public registeredSuppliers;
+    mapping(address => mapping(uint => bool)) public registeredUsers;
 
     modifier zeroAddressCheck(address supplier) {
-        require(supplier != address(0), "StakingReward: supplier is address 0");
+        require(supplier != address(0), "Register: supplier is address 0");
         _;
     }
 
@@ -33,7 +31,7 @@ contract Register is RegisterManagement {
         address supplier,
         uint tokenId
     ) {
-        require(IERC721(token).ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
+        require(IERC721(token).ownerOf(tokenId) == supplier, "Register: supplier is not the owner of this token");
         _;
     }
 
@@ -63,7 +61,10 @@ contract Register is RegisterManagement {
         isCorrectOwner(address(NRGS), supplier, tokenId)
         returns (bool)
     {
+        require(isRegisteredSupplier(supplier, tokenId), "Register: supplier is already registered");
         emit SupplierRegistered(msg.sender, supplier, block.timestamp);
+
+        registeredSuppliers[supplier];
 
         return true;
     }
@@ -89,6 +90,7 @@ contract Register is RegisterManagement {
         isCorrectOwner(address(ELU), user, tokenId)
         returns (bool)
     {
+        require(isRegisteredUser(user, tokenId), "Register: user is already registered");
         emit UserRegistered(msg.sender, user, block.timestamp);
 
         return true;
@@ -115,6 +117,7 @@ contract Register is RegisterManagement {
         isCorrectOwner(address(NRGS), supplier, tokenId)
         returns (bool)
     {
+        require(!isRegisteredSupplier(supplier, tokenId), "Register: supplier is not registered");
         emit SupplierUnregistered(msg.sender, supplier, block.timestamp);
 
         return true;
@@ -141,8 +144,17 @@ contract Register is RegisterManagement {
         isCorrectOwner(address(ELU), user, tokenId)
         returns (bool)
     {
+        require(!isRegisteredUser(user, tokenId), "Register: user is already registered");
         emit UserUnregistered(msg.sender, user, block.timestamp);
 
         return true;
+    }
+
+    function isRegisteredSupplier(address user, uint256 tokenId) public view returns (bool) {
+        return staking.suppliers(user, tokenId).updatedAt > 0 && registeredSuppliers[user][tokenId];
+    }
+
+    function isRegisteredUser(address user, uint tokenId) public view returns (bool) {
+        return registeredUsers[user][tokenId];
     }
 }
