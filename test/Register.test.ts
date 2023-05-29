@@ -2,7 +2,7 @@ import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { BigNumber, ContractFactory } from "ethers";
 import { ethers } from "hardhat";
 import { expect } from 'chai';
-import { FixedPointMath, MCGR, Register, StakingReward } from "../typechain";
+import { FixedPointMath, MCGR, Manager, Register, StakingReward } from "../typechain";
 import { ELU } from "../typechain/contracts/tokens/ERC721/ELU";
 import { NRGS } from "../typechain/contracts/tokens/ERC721/NRGS";
 
@@ -31,16 +31,20 @@ describe("Register", function () {
 		const elu: ELU = await ELU.deploy() as ELU;
 		await elu.deployed();
 
+		const Manager: ContractFactory = await ethers.getContractFactory("Manager");
+		const manager: Manager = await Manager.deploy(mcgr.address, elu.address, nrgs.address) as Manager;
+		await manager.deployed();
+
 		const FixedPointMath: ContractFactory = await ethers.getContractFactory("FixedPointMath");
 		const fixedPoint: FixedPointMath = await FixedPointMath.deploy() as FixedPointMath;
 		await fixedPoint.deployed();
 
 		const StakingReward: ContractFactory = await ethers.getContractFactory("StakingReward", { libraries: { FixedPointMath: fixedPoint.address } });
-		const stakingReward: StakingReward = await StakingReward.deploy(mcgr.address, nrgs.address, 10) as StakingReward;
+		const stakingReward: StakingReward = await StakingReward.deploy(manager.address) as StakingReward;
 		await stakingReward.deployed();
 
 		const Register: ContractFactory = await ethers.getContractFactory("Register");
-		const register: Register = await Register.deploy(elu.address, nrgs.address, stakingReward.address) as Register;
+		const register: Register = await Register.deploy(manager.address) as Register;
 		await register.deployed();
 
 		minter_role = await mcgr.MINTER_ROLE();
@@ -48,6 +52,9 @@ describe("Register", function () {
 		admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
 		staking_role = await stakingReward.STAKING_MANAGER_ROLE();
 		register_role = await register.REGISTER_MANAGER_ROLE();
+
+		await manager.changeRewardAmount(10);
+		await manager.changeStakingContract(stakingReward.address);
 
 		await mcgr.grantRole(minter_role, stakingReward.address);
 
@@ -58,11 +65,11 @@ describe("Register", function () {
 
 		await stakingReward.grantRole(staking_role, register.address);
 
-		return { mcgr, elu, ELU, nrgs, NRGS, stakingReward, StakingReward, register, deployer, otherAcc };
+		return { mcgr, elu, ELU, nrgs, NRGS, manager, stakingReward, StakingReward, register, deployer, otherAcc };
 	}
 
 	it('Deployed correctly', async () => {
-		const { mcgr, elu, nrgs, stakingReward, register, deployer } = await loadFixture(deployFixture);
+		const { mcgr, elu, nrgs, stakingReward, register, manager, deployer } = await loadFixture(deployFixture);
 
 		expect(mcgr.address).to.be.properAddress;
 		expect(nrgs.address).to.be.properAddress;
@@ -95,71 +102,8 @@ describe("Register", function () {
 		expect(await register.hasRole(admin_role, deployer.address)).to.be.true;
 		expect(await register.hasRole(register_role, deployer.address)).to.be.true;
 
-		expect(await stakingReward.NRGS()).to.be.eq(nrgs.address);
-		expect(await stakingReward.MCGR()).to.be.eq(mcgr.address);
-
-		expect(await register.NRGS()).to.be.eq(nrgs.address);
-		expect(await register.ELU()).to.be.eq(elu.address);
-		expect(await register.staking()).to.be.eq(stakingReward.address);
-	});
-
-	describe("Management", function () {
-		it('Manager can change ELU', async () => {
-			const { ELU, register } = await loadFixture(deployFixture);
-
-			const oldEluAddress = await register.ELU();
-
-			const newElu: ELU = await ELU.deploy() as ELU;
-			await newElu.deployed();
-
-			const tx = await register.changeELU(newElu.address);
-			const newEluAddress = await register.ELU();
-
-			expect(tx).to.emit(register, "ELUchanged");
-			expect(newEluAddress).not.to.be.eq(oldEluAddress);
-			expect(newEluAddress).to.be.eq(newElu.address);
-		});
-
-		it('Manager can change NRGS', async () => {
-			const { NRGS, register } = await loadFixture(deployFixture);
-
-			const oldNrgsAddress = await register.NRGS();
-
-			const newNrgs: NRGS = await NRGS.deploy() as NRGS;
-			await newNrgs.deployed();
-
-			const tx = await register.changeNRGS(newNrgs.address);
-			const newNrgsAddress = await register.NRGS();
-
-			expect(tx).to.emit(register, "NRGSchanged");
-			expect(newNrgsAddress).not.to.be.eq(oldNrgsAddress);
-			expect(newNrgsAddress).to.be.eq(newNrgs.address);
-		});
-
-		it('Manager can change Staking contract link', async () => {
-			const { register, mcgr, nrgs, StakingReward } = await loadFixture(deployFixture);
-
-			const oldStaking = await register.staking();
-
-			const newStakingReward: StakingReward = await StakingReward.deploy(mcgr.address, nrgs.address, 10) as StakingReward;
-			await newStakingReward.deployed();
-
-			const tx = await register.changeStakingContract(newStakingReward.address);
-			const newStaking = await register.staking();
-
-			expect(tx).to.emit(register, "StakingChanged");
-			expect(newStaking).not.to.be.eq(oldStaking);
-			expect(newStaking).to.be.eq(newStakingReward.address);
-		});
-
-		it('Only manager can change management functions', async () => {
-			const { register, stakingReward, elu, nrgs, otherAcc } = await loadFixture(deployFixture);
-			const errorMsg = `AccessControl: account ${otherAccAddress} is missing role ${register_role}`;
-
-			await expect(register.connect(otherAcc).changeStakingContract(stakingReward.address)).to.be.revertedWith(errorMsg);
-			await expect(register.connect(otherAcc).changeNRGS(nrgs.address)).to.be.revertedWith(errorMsg);
-			await expect(register.connect(otherAcc).changeELU(elu.address)).to.be.revertedWith(errorMsg);
-		});
+		expect(await stakingReward.manager()).to.be.eq(manager.address);
+		expect(await register.manager()).to.be.eq(manager.address);
 	});
 
 	describe("Registers", function () {
@@ -264,9 +208,6 @@ describe("Register", function () {
 			await expect(register.registerElectricityUser(deployer.address, 10, addressZero)).to.be.revertedWith(errorMsg);
 			await expect(register.unRegisterSupplier(addressZero, 10)).to.be.revertedWith(errorMsg);
 			await expect(register.unRegisterElectricityUser(addressZero, 10)).to.be.revertedWith(errorMsg);
-			await expect(register.changeELU(addressZero)).to.be.revertedWith(errorMsg);
-			await expect(register.changeNRGS(addressZero)).to.be.revertedWith(errorMsg);
-			await expect(register.changeStakingContract(addressZero)).to.be.revertedWith(errorMsg);
 		});
 
 		it('Requires valid token id', async () => {
