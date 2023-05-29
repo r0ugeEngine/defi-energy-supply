@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./StakingManagement.sol";
-import "../math/FixedPointMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-import "../tokens/ERC20/interfaces/IMCGR.sol";
-import "../tokens/ERC721/interfaces/INRGS.sol";
+import "../math/FixedPointMath.sol";
+import "../manager/interfaces/IManager.sol";
 
 /**
  * @title StakingReward contract for rewards management
  * @author Bohdan
  */
-contract StakingReward is StakingManagement {
+contract StakingReward is AccessControl {
     using FixedPointMath for uint256;
 
     ///@dev Emmited when a user registers as an Energy supplier
@@ -27,22 +26,38 @@ contract StakingReward is StakingManagement {
         uint256 pendingReward;
     }
 
+    /// @dev Keccak256 hashed `STAKING_MANAGER_ROLE` string
+    bytes32 public constant STAKING_MANAGER_ROLE = keccak256(bytes("STAKING_MANAGER_ROLE"));
+
+    /// @dev Manager contract
+    IManager public manager;
+
     /// @dev Total suppliers
     uint256 public totalSuppliers;
 
     /// @dev Address to supplier
     mapping(address => mapping(uint => Supplier)) public suppliers;
 
+    /// @dev Throws if passed address 0 as parameter
+    modifier zeroAddressCheck(address supplier) {
+        require(supplier != address(0), "StakingReward: supplier is address 0");
+        _;
+    }
+
     /// @dev Throws if passed not correct owner of tokenId
     modifier isCorrectOwner(address supplier, uint tokenId) {
-        require(NRGS.ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
+        require(manager.NRGS().ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
         _;
     }
 
     /// @notice Constructor to initialize StakingReward contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
-    /// @dev Sets `MCGR` and `NRGS` tokens links and `rewardAmount` value
-    constructor(IMCGR _MCGR, INRGS _NRGS, uint256 _rewardAmount) StakingManagement(_MCGR, _NRGS, _rewardAmount) {}
+    constructor(IManager _manager) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(STAKING_MANAGER_ROLE, msg.sender);
+
+        manager = _manager;
+    }
 
     /**
      * @notice Enters staking process.
@@ -158,12 +173,12 @@ contract StakingReward is StakingManagement {
         suppliers[supplier][tokenId].pendingReward = 0;
         suppliers[supplier][tokenId].updatedAt = block.timestamp;
 
-        MCGR.mint(supplier, _supplier.pendingReward);
+        manager.MCGR().mint(supplier, _supplier.pendingReward);
     }
 
     function _updateRewardRate(uint _updatedAt) private view returns (uint256 rewardToUser) {
         uint timePassed = block.timestamp - _updatedAt;
 
-        rewardToUser = rewardAmount.mulDiv(timePassed, totalSuppliers);
+        rewardToUser = manager.rewardAmount().mulDiv(timePassed, totalSuppliers);
     }
 }
