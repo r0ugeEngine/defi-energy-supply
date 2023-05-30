@@ -12,42 +12,59 @@ import "./interfaces/IManager.sol";
 contract Manager is AccessControl, IManager {
     // ERC20
     /// @dev Emitted when a manager has changed the `MCGR` link to another contract
-    event MCGRchanged(address indexed sender, IMCGR indexed newMCGR);
+    event MCGRchanged(address indexed sender, IMCGR newMCGR);
 
     // NFTs
     /// @dev Emitted when a manager has changed the `ELU` link to another contract
-    event ELUchanged(address indexed sender, IELU indexed newELU);
+    event ELUchanged(address indexed sender, IELU newELU);
     /// @dev Emitted when a manager has changed the `NRGS` link to another contract
-    event NRGSchanged(address indexed sender, INRGS indexed newNRGS);
+    event NRGSchanged(address indexed sender, INRGS newNRGS);
 
     // Staking
     /// @dev Emitted when a manager has changed the `staking` link to another contract
-    event StakingChanged(address indexed sender, IStakingReward indexed staking);
+    event StakingChanged(address indexed sender, IStakingReward staking);
+
+    // Oracle
+    /// @dev Emitted when a manager has changed the `oracle` link to another contract
+    event OracleChanged(address indexed sender, IEnergyOracle oracle);
+
+    // Register
+    /// @dev Emitted when a manager has changed the `register` link to another contract
+    event RegisterChanged(address indexed sender, IRegister register);
 
     // Amount
     /// @dev Emitted when a manager has changed the `rewardAmount`
-    event RewardAmountChanged(address indexed sender, uint256 indexed newRewardAmount);
+    event RewardAmountChanged(address indexed sender, uint256 newRewardAmount);
+    /// @dev Emitted when a manager has changed the `percentage`
+    event PercentageChanged(address indexed sender, uint256 newPercentage);
+    /// @dev Emitted when a manager has changed the `tolerance`
+    event ToleranceChanged(address indexed sender, uint256 indexed newTolerance);
 
     /// @dev Keccak256 hashed `MANAGER_ROLE` string
     bytes32 public constant MANAGER_ROLE = keccak256(bytes("MANAGER_ROLE"));
 
-    // Tokens
+    // Contracts
     ///@dev Reward token
     IMCGR public MCGR;
-
-    // NFTs
     ///@dev Electricity user NFT token
     IELU public ELU;
     ///@dev Energy Supplier NFT token
     INRGS public NRGS;
 
-    // Staking
     ///@dev Staking contract
     IStakingReward public staking;
+    ///@dev Oracle contract
+    IEnergyOracle public oracle;
+    ///@dev Register contract
+    IRegister public register;
 
-    // Rewards
+    // Values
     /// @dev Amount of rewards to suppliers
     uint256 public rewardAmount;
+    /// @dev Percentage for acceptable range
+    uint256 public percentage;
+    /// @dev Tolerance for equality
+    uint256 public tolerance;
 
     /// @dev Throws if passed address 0 as parameter
     modifier zeroAddressCheck(address supplier) {
@@ -58,9 +75,10 @@ contract Manager is AccessControl, IManager {
     /**
      * @notice Constructor to initialize StakingManagement contract
      * @dev Grants `DEFAULT_ADMIN_ROLE` and `MANAGER_ROLE` roles to `msg.sender`
-     * Sets `MCGR` token address, `ELU` and `NRGS` tokens addresses, `staking` address, `rewardAmount`
+     * Sets `MCGR` token address, `ELU` and `NRGS` tokens addresses, `staking` address
+     * Sets `rewardAmount`, `percentage` and `tolerance`
      */
-    constructor(IMCGR _MCGR, IELU _ELU, INRGS _NRGS) {
+    constructor(IMCGR _MCGR, IELU _ELU, INRGS _NRGS, uint _rewardAmount, uint256 _percentage, uint256 _tolerance) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
 
@@ -68,6 +86,10 @@ contract Manager is AccessControl, IManager {
 
         ELU = _ELU;
         NRGS = _NRGS;
+
+        rewardAmount = _rewardAmount;
+        percentage = _percentage;
+        tolerance = _tolerance;
     }
 
     /**
@@ -133,6 +155,40 @@ contract Manager is AccessControl, IManager {
     }
 
     /**
+     * @notice Changes `oracle` link to another contract.
+     * Requirements:
+     * - `msg.sender` must have `MANAGER_ROLE`
+     *
+     * @param _oracle IEnergyOracle
+     * @return bool
+     */
+    function changeOracle(
+        IEnergyOracle _oracle
+    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_oracle)) returns (bool) {
+        emit OracleChanged(msg.sender, _oracle);
+
+        oracle = _oracle;
+        return true;
+    }
+
+    /**
+     * @notice Changes `register` link to another contract.
+     * Requirements:
+     * - `msg.sender` must have `MANAGER_ROLE`
+     *
+     * @param _register IRegister
+     * @return bool
+     */
+    function changeRegister(
+        IRegister _register
+    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_register)) returns (bool) {
+        emit RegisterChanged(msg.sender, _register);
+
+        register = _register;
+        return true;
+    }
+
+    /**
      * @notice Changes reward amount to another amount.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
@@ -144,6 +200,36 @@ contract Manager is AccessControl, IManager {
         emit RewardAmountChanged(msg.sender, _newRewardAmount);
 
         rewardAmount = _newRewardAmount;
+        return true;
+    }
+
+    /**
+     * @notice Changes percentage amount to another amount.
+     * Requirements:
+     * - `msg.sender` must have `MANAGER_ROLE`
+     *
+     * @param _newPercentage uint256
+     * @return bool
+     */
+    function changePercentage(uint256 _newPercentage) external onlyRole(MANAGER_ROLE) returns (bool) {
+        emit PercentageChanged(msg.sender, _newPercentage);
+
+        percentage = _newPercentage;
+        return true;
+    }
+
+    /**
+     * @notice Changes tolerance amount to another amount.
+     * Requirements:
+     * - `msg.sender` must have `MANAGER_ROLE`
+     *
+     * @param _newTolerance uint256
+     * @return bool
+     */
+    function changeTolerance(uint256 _newTolerance) external onlyRole(MANAGER_ROLE) returns (bool) {
+        emit ToleranceChanged(msg.sender, _newTolerance);
+
+        tolerance = _newTolerance;
         return true;
     }
 
