@@ -54,9 +54,6 @@ contract EnergyOracle is AccessControl, Pausable {
     /// @dev Manager contract
     IManager public manager;
 
-    /// @dev Percentage for acceptable range
-    uint256 public percentage;
-
     /// @dev Mapping to store consumption
     mapping(address => mapping(uint256 => EnergyConsumption[])) private energyConsumptions; // user => tokenId => timestamp => EnergyConsumptions
 
@@ -110,8 +107,9 @@ contract EnergyOracle is AccessControl, Pausable {
         // Reconciliation and validation
         bool isValueMatch = false;
         bool isOutlier = false;
+
         for (uint i = 0; i < length; i++) {
-            if (userTokenConsumptions[i].timestamp == timestamp) {
+            if (_isApproximatelyEqual(userTokenConsumptions[i].timestamp, timestamp)) {
                 // Check if the consumption value is within an acceptable range
                 if (_isWithinAcceptableRange(consumption, userTokenConsumptions[i].consumption)) {
                     isValueMatch = true;
@@ -149,7 +147,7 @@ contract EnergyOracle is AccessControl, Pausable {
         address user,
         uint256 tokenId,
         uint256 timestamp
-    ) public onlyRole(ESCROW) returns (uint256 consumption) {
+    ) public onlyRole(ESCROW) whenNotPaused returns (uint256 consumption) {
         EnergyConsumption[] memory userTokenConsumptions = energyConsumptions[user][tokenId];
         uint length = userTokenConsumptions.length;
 
@@ -218,7 +216,7 @@ contract EnergyOracle is AccessControl, Pausable {
         _unpause();
     }
 
-    function _isWithinAcceptableRange(uint256 newValue, uint256 existingValue) internal pure returns (bool) {
+    function _isWithinAcceptableRange(uint256 newValue, uint256 existingValue) internal view returns (bool) {
         // Define your acceptable range logic here
         uint256 acceptableRange = _calculateAcceptableRange(existingValue);
 
@@ -227,10 +225,14 @@ contract EnergyOracle is AccessControl, Pausable {
         return difference <= acceptableRange;
     }
 
-    function _calculateAcceptableRange(uint256 value) internal pure returns (uint256) {
+    function _calculateAcceptableRange(uint256 value) internal view returns (uint256) {
         // Define your acceptable range calculation logic here
         // You can use a percentage or a fixed value depending on your requirements
         // For example, return value * 10 / 100; to allow a 10% difference from the existing value
-        return (value * 10) / 100;
+        return (value * manager.percentage()) / 100;
+    }
+
+    function _isApproximatelyEqual(uint256 a, uint256 b) internal view returns (bool) {
+        return (a >= b - manager.tolerance()) && (a <= b + manager.tolerance());
     }
 }
