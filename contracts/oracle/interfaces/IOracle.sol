@@ -20,4 +20,19 @@ interface IEnergyOracle {
         uint256 tokenId,
         uint256 timestamp
     ) external returns (uint256 consumption);
+
+    /**
+     * @notice Records the energy consumption for a user and token at a specific timestamp.
+     * @dev
+     * Requirements:
+     * - `msg.sender` must have ORACLE_PROVIDER_ROLE
+     * - `user` must have token with `tokenId`
+     * - `timestamp` must be arrived
+     *
+     * @param user The user address
+     * @param tokenId The token ID
+     * @param timestamp The timestamp for the energy consumption
+     * @param consumption The energy consumption value
+     */
+    function recordEnergyConsumption(address user, uint tokenId, uint256 timestamp, uint256 consumption) external;
 }
