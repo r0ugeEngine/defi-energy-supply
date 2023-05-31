@@ -131,5 +131,4 @@ describe(`Tokens`, function () {
       expect(await elu.burn(0)).to.changeTokenBalance(elu, otherAcc, -1);
     });
   });
-
 });

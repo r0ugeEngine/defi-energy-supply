@@ -27,12 +27,16 @@ describe("Staking", function () {
     const nrgs: NRGS = await NRGS.deploy() as NRGS;
     await nrgs.deployed();
 
+    const ELU: ContractFactory = await ethers.getContractFactory("ELU");
+    const elu: ELU = await ELU.deploy() as ELU;
+    await elu.deployed();
+
     const FixedPointMath: ContractFactory = await ethers.getContractFactory("FixedPointMath");
     const fixedPoint: FixedPointMath = await FixedPointMath.deploy() as FixedPointMath;
     await fixedPoint.deployed();
 
     const Manager: ContractFactory = await ethers.getContractFactory("Manager");
-    const manager: Manager = await Manager.deploy(mcgr.address, nrgs.address, nrgs.address) as Manager;
+    const manager: Manager = await Manager.deploy(mcgr.address, elu.address, nrgs.address, 10, 10, 5) as Manager;
     await manager.deployed();
 
     const StakingReward: ContractFactory = await ethers.getContractFactory("StakingReward", { libraries: { FixedPointMath: fixedPoint.address } });

@@ -32,7 +32,7 @@ describe("Manager", function () {
 		await elu.deployed();
 
 		const Manager: ContractFactory = await ethers.getContractFactory("Manager");
-		const manager: Manager = await Manager.deploy(mcgr.address, elu.address, nrgs.address) as Manager;
+		const manager: Manager = await Manager.deploy(mcgr.address, elu.address, nrgs.address, 10, 10, 5) as Manager;
 		await manager.deployed();
 
 		const FixedPointMath: ContractFactory = await ethers.getContractFactory("FixedPointMath");
@@ -183,7 +183,7 @@ describe("Manager", function () {
 
 	describe("Errors", function () {
 		it('Only MANAGER_ROLE', async () => {
-			const { manager, otherAcc, deployer } = await loadFixture(deployFixture);
+			const { manager, otherAcc } = await loadFixture(deployFixture);
 
 			const errorMsg = `AccessControl: account ${otherAccAddress} is missing role ${manager_role}`;
 
@@ -195,7 +195,7 @@ describe("Manager", function () {
 		});
 
 		it('Zero Address Check', async () => {
-			const { manager, deployer } = await loadFixture(deployFixture);
+			const { manager } = await loadFixture(deployFixture);
 			const addressZero = ethers.constants.AddressZero;
 			const errorMsg = "Manager: passed address is address 0";
 
