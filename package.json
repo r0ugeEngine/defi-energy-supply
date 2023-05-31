@@ -46,6 +46,7 @@
     "size": "yarn run hardhat size-contracts",
     "doc:uml": "sol2uml ./contracts -i mocks,test -f png -o ./docs/uml/swarm-markets.png",
     "docify": "node docify.js",
+    "prettier:sol": "prettier --config .prettierrc --write \"contracts/**/*.sol\"",
     "prettier:ts": "prettier --config .prettierrc --write \"**/*.{js,ts}\"",
     "prettier:json:md": "prettier --config .prettierrc --write \"**/*.{json,md}\"",
     "prettier": "yarn prettier:sol && yarn prettier:ts",
