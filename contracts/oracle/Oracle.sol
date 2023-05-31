@@ -147,7 +147,14 @@ contract EnergyOracle is AccessControl, Pausable {
         address user,
         uint256 tokenId,
         uint256 timestamp
-    ) public onlyRole(ESCROW) whenNotPaused returns (uint256 consumption) {
+    )
+        public
+        onlyRole(ESCROW)
+        whenNotPaused
+        zeroAddressCheck(user)
+        isCorrectUser(user, tokenId)
+        returns (uint256 consumption)
+    {
         EnergyConsumption[] memory userTokenConsumptions = energyConsumptions[user][tokenId];
         uint length = userTokenConsumptions.length;
 
