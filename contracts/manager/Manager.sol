@@ -35,8 +35,6 @@ contract Manager is AccessControl, IManager {
     // Amount
     /// @dev Emitted when a manager has changed the `rewardAmount`
     event RewardAmountChanged(address indexed sender, uint256 newRewardAmount);
-    /// @dev Emitted when a manager has changed the `percentage`
-    event PercentageChanged(address indexed sender, uint256 newPercentage);
     /// @dev Emitted when a manager has changed the `tolerance`
     event ToleranceChanged(address indexed sender, uint256 indexed newTolerance);
 
@@ -61,8 +59,6 @@ contract Manager is AccessControl, IManager {
     // Values
     /// @dev Amount of rewards to suppliers
     uint256 public rewardAmount;
-    /// @dev Percentage for acceptable range
-    uint256 public percentage;
     /// @dev Tolerance for equality
     uint256 public tolerance;
 
@@ -78,7 +74,7 @@ contract Manager is AccessControl, IManager {
      * Sets `MCGR` token address, `ELU` and `NRGS` tokens addresses, `staking` address
      * Sets `rewardAmount`, `percentage` and `tolerance`
      */
-    constructor(IMCGR _MCGR, IELU _ELU, INRGS _NRGS, uint _rewardAmount, uint256 _percentage, uint256 _tolerance) {
+    constructor(IMCGR _MCGR, IELU _ELU, INRGS _NRGS, uint _rewardAmount, uint256 _tolerance) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
 
@@ -88,7 +84,6 @@ contract Manager is AccessControl, IManager {
         NRGS = _NRGS;
 
         rewardAmount = _rewardAmount;
-        percentage = _percentage;
         tolerance = _tolerance;
     }
 
@@ -200,21 +195,6 @@ contract Manager is AccessControl, IManager {
         emit RewardAmountChanged(msg.sender, _newRewardAmount);
 
         rewardAmount = _newRewardAmount;
-        return true;
-    }
-
-    /**
-     * @notice Changes percentage amount to another amount.
-     * Requirements:
-     * - `msg.sender` must have `MANAGER_ROLE`
-     *
-     * @param _newPercentage uint256
-     * @return bool
-     */
-    function changePercentage(uint256 _newPercentage) external onlyRole(MANAGER_ROLE) returns (bool) {
-        emit PercentageChanged(msg.sender, _newPercentage);
-
-        percentage = _newPercentage;
         return true;
     }
 

@@ -30,9 +30,6 @@ interface IManager {
     /// @dev Amount of rewards to suppliers
     function rewardAmount() external view returns (uint256);
 
-    /// @dev Percentage for acceptable range
-    function percentage() external view returns (uint256);
-
     /// @dev Tolerance for equality
     function tolerance() external view returns (uint256);
 }
