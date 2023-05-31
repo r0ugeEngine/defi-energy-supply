@@ -55,7 +55,8 @@ contract EnergyOracle is AccessControl, Pausable {
     IManager public manager;
 
     /// @dev Mapping to store consumption
-    mapping(address => mapping(uint256 => EnergyConsumption[])) private energyConsumptions; // user => tokenId => timestamp => EnergyConsumptions
+    mapping(address => mapping(uint256 => EnergyConsumption[])) private _energyConsumptions; // user => tokenId => id => EnergyConsumptions
+    mapping(address => mapping(uint => mapping(uint256 => bool))) private consumedTimestamps;
 
     /// @dev Throws if passed address 0 as parameter
     modifier zeroAddressCheck(address account) {
@@ -86,7 +87,7 @@ contract EnergyOracle is AccessControl, Pausable {
      * Requirements:
      * - `msg.sender` must have ORACLE_PROVIDER_ROLE
      * - `user` must have token with `tokenId`
-     * - `timestamp` must be arrived
+     * - `timestamp` must be equal to 21:00
      *
      * @param user The user address
      * @param tokenId The token ID
@@ -101,52 +102,46 @@ contract EnergyOracle is AccessControl, Pausable {
     ) external onlyRole(ORACLE_PROVIDER_ROLE) zeroAddressCheck(user) isCorrectUser(user, tokenId) {
         require(timestamp <= block.timestamp, "EnergyOracle: timestamp has not yet arrived");
 
-        EnergyConsumption[] storage userTokenConsumptions = energyConsumptions[user][tokenId];
-        uint length = userTokenConsumptions.length;
+        EnergyConsumption[] storage consumptions = _energyConsumptions[user][tokenId];
 
-        // Reconciliation and validation
-        bool isValueMatch = false;
-        bool isOutlier = false;
-
-        for (uint i = 0; i < length; i++) {
-            if (_isApproximatelyEqual(userTokenConsumptions[i].timestamp, timestamp)) {
-                // Check if the consumption value is within an acceptable range
-                if (_isWithinAcceptableRange(consumption, userTokenConsumptions[i].consumption)) {
-                    isValueMatch = true;
-                } else {
-                    isOutlier = true;
-                }
-                break;
-            }
+        // Check if the previous value is within the acceptable range
+        if (consumptions.length > 0) {
+            EnergyConsumption storage previousValue = consumptions[consumptions.length - 1];
+            require(
+                isWithinAcceptableRange(previousValue.consumption, consumption),
+                "EnergyOracle: Previous value is not within acceptable range"
+            );
         }
 
-        require(isValueMatch, "EnergyOracle: value mismatch");
+        manager.MCGR().mint(msg.sender, manager.rewardAmount() * 2);
 
-        // If the value is not an outlier, record the energy consumption
-        if (!isOutlier) {
-            emit EnergyConsumptionRecorded(msg.sender, user, tokenId, timestamp, consumption);
+        // Add the new consumption to the array
+        consumptions.push(EnergyConsumption(timestamp, consumption));
 
-            manager.MCGR().mint(msg.sender, manager.rewardAmount() * 2);
+        // Sort the array
+        sortEnergyConsumptions(consumptions);
 
-            energyConsumptions[user][tokenId].push(EnergyConsumption(timestamp, consumption));
-        }
+        // Calculate the median
+        uint256 median = calculateMedian(consumptions);
 
-        // If the value is an outlier, emit an event or take appropriate action
-        if (isOutlier) {
-            emit OutlierDetected(msg.sender, user, tokenId, timestamp, consumption);
-        }
+        // Clear the array
+        delete _energyConsumptions[user][tokenId];
+
+        // Update the median value in the storage
+        consumptions.push(EnergyConsumption(timestamp, median));
+        _energyConsumptions[user][tokenId] = consumptions;
+
+        emit EnergyConsumptionRecorded(msg.sender, user, tokenId, timestamp, consumption);
     }
 
-    /// @notice Gets the energy consumption for a user, token, and timestamp
+    /// @notice Gets the energy consumption for a user, token
     /// Requirements: `msg.sender` must have ORACLE_PROVIDER_ROLE
     /// @param user The user address
     /// @param tokenId The token ID
-    /// @param timestamp The timestamp
     /// @return consumption The energy consumption value
     function getEnergyConsumption(
         address user,
-        uint256 tokenId,
-        uint256 timestamp
+        uint256 tokenId
     )
         public
         onlyRole(ESCROW)
@@ -155,52 +150,18 @@ contract EnergyOracle is AccessControl, Pausable {
         isCorrectUser(user, tokenId)
         returns (uint256 consumption)
     {
-        EnergyConsumption[] memory userTokenConsumptions = energyConsumptions[user][tokenId];
-        uint length = userTokenConsumptions.length;
+        EnergyConsumption[] memory userTokenConsumptions = _energyConsumptions[user][tokenId];
 
-        if (length == 0 || userTokenConsumptions[0].timestamp > timestamp) {
+        if (userTokenConsumptions.length == 0) {
             return 0;
         }
-
-        // Round the timestamp to the nearest day boundary
-        uint256 roundedTimestamp = (timestamp / 1 days) * 1 days;
-
-        // Find the closest timestamp to the rounded timestamp
-        uint left = 0;
-        uint right = length - 1;
-        uint closestIndex = 0;
-        uint256 closestDifference = type(uint256).max;
-
-        while (left <= right) {
-            uint mid = (left + right) / 2;
-            uint256 currentTimestamp = userTokenConsumptions[mid].timestamp;
-            uint256 difference = roundedTimestamp > currentTimestamp
-                ? roundedTimestamp - currentTimestamp
-                : currentTimestamp - roundedTimestamp;
-
-            if (difference < closestDifference) {
-                closestIndex = mid;
-                closestDifference = difference;
-            }
-
-            if (currentTimestamp < roundedTimestamp) {
-                left = mid + 1;
-            } else if (currentTimestamp > roundedTimestamp) {
-                right = mid - 1;
-            } else {
-                // Exact match found, use it as the closest index
-                closestIndex = mid;
-                break;
-            }
-        }
-
         // Get the consumption value at the closest index
-        consumption = userTokenConsumptions[closestIndex].consumption;
+        consumption = userTokenConsumptions[0].consumption;
 
-        // Delete the energy consumption array after reading the value
-        delete energyConsumptions[user][tokenId];
+        // Clear the energy consumption array
+        delete _energyConsumptions[user][tokenId];
 
-        emit EnergyConsumptionSent(msg.sender, user, tokenId, timestamp, consumption);
+        emit EnergyConsumptionSent(msg.sender, user, tokenId, block.timestamp, consumption);
 
         return consumption;
     }
@@ -223,23 +184,51 @@ contract EnergyOracle is AccessControl, Pausable {
         _unpause();
     }
 
-    function _isWithinAcceptableRange(uint256 newValue, uint256 existingValue) internal view returns (bool) {
-        // Define your acceptable range logic here
-        uint256 acceptableRange = _calculateAcceptableRange(existingValue);
-
-        // Check if the absolute difference between the new and existing values is within the acceptable range
-        uint256 difference = newValue > existingValue ? newValue - existingValue : existingValue - newValue;
-        return difference <= acceptableRange;
+    function energyConsumptions(
+        address user,
+        uint256 tokenId,
+        uint256 id
+    ) public view returns (uint timestamp, uint consumption) {
+        EnergyConsumption memory energyConsumption = _energyConsumptions[user][tokenId][id];
+        timestamp = energyConsumption.timestamp;
+        consumption = energyConsumption.consumption;
     }
 
-    function _calculateAcceptableRange(uint256 value) internal view returns (uint256) {
-        // Define your acceptable range calculation logic here
-        // You can use a percentage or a fixed value depending on your requirements
-        // For example, return value * 10 / 100; to allow a 10% difference from the existing value
-        return (value * manager.percentage()) / 100;
+    function sortEnergyConsumptions(EnergyConsumption[] memory arr) private pure {
+        // Perform sorting logic here
+        // Replace this with your own sorting implementation
+        // For example, you can use a simple sorting algorithm like bubble sort:
+        uint256 n = arr.length;
+        for (uint256 i = 0; i < n - 1; i++) {
+            for (uint256 j = 0; j < n - i - 1; j++) {
+                if (arr[j].timestamp > arr[j + 1].timestamp) {
+                    // Swap elements
+                    EnergyConsumption memory temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
     }
 
-    function _isApproximatelyEqual(uint256 a, uint256 b) internal view returns (bool) {
-        return (a >= b - manager.tolerance()) && (a <= b + manager.tolerance());
+    function calculateMedian(EnergyConsumption[] memory arr) private pure returns (uint256) {
+        // Perform median calculation logic here
+        // Replace this with your own median calculation implementation
+        // For example, you can use the middle element if the array length is odd,
+        // or calculate the average of the middle two elements if the length is even.
+        uint256 length = arr.length;
+        if (length % 2 == 0) {
+            uint256 index1 = length / 2 - 1;
+            uint256 index2 = length / 2;
+            return (arr[index1].consumption + arr[index2].consumption) / 2;
+        } else {
+            uint256 index = length / 2;
+            return arr[index].consumption;
+        }
+    }
+
+    function isWithinAcceptableRange(uint256 previousValue, uint256 newValue) private view returns (bool) {
+        uint256 tolerance = manager.tolerance();
+        return (newValue >= previousValue - tolerance) && (newValue <= previousValue + tolerance);
     }
 }

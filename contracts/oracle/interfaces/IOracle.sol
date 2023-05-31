@@ -9,17 +9,12 @@ pragma solidity ^0.8.19;
  * @author Bohdan
  */
 interface IEnergyOracle {
-    /// @notice Gets the energy consumption for a user, token, and timestamp
+    /// @notice Gets the energy consumption for a user, token
     /// Requirements: `msg.sender` must have ORACLE_PROVIDER_ROLE
     /// @param user The user address
     /// @param tokenId The token ID
-    /// @param timestamp The timestamp
     /// @return consumption The energy consumption value
-    function getEnergyConsumption(
-        address user,
-        uint256 tokenId,
-        uint256 timestamp
-    ) external returns (uint256 consumption);
+    function getEnergyConsumption(address user, uint256 tokenId) external returns (uint256 consumption);
 
     /**
      * @notice Records the energy consumption for a user and token at a specific timestamp.
