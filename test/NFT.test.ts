@@ -7,7 +7,6 @@ import { ELU } from '../typechain/contracts/tokens/ERC721/ELU';
 import { NRGS } from '../typechain/contracts/tokens/ERC721/NRGS';
 
 describe(`Tokens`, function () {
-
   let otherAccAddress: string;
   let admin_role: string, minter_role: string, burner_role: string, staking_role: string;
   // We define a fixture to reuse the same setup in every test.
@@ -19,15 +18,15 @@ describe(`Tokens`, function () {
     otherAccAddress = otherAcc.address.toLowerCase();
 
     const MCGR: ContractFactory = await ethers.getContractFactory(`MCGR`);
-    const mcgr: MCGR = await MCGR.deploy() as MCGR;
+    const mcgr: MCGR = (await MCGR.deploy()) as MCGR;
     await mcgr.deployed();
 
     const ELU: ContractFactory = await ethers.getContractFactory(`ELU`);
-    const elu: ELU = await ELU.deploy() as ELU;
+    const elu: ELU = (await ELU.deploy()) as ELU;
     await elu.deployed();
 
     const NRGS: ContractFactory = await ethers.getContractFactory(`NRGS`);
-    const nrgs: NRGS = await NRGS.deploy() as NRGS;
+    const nrgs: NRGS = (await NRGS.deploy()) as NRGS;
     await nrgs.deployed();
 
     return { mcgr, elu, nrgs, deployer, otherAcc };
@@ -66,7 +65,9 @@ describe(`Tokens`, function () {
     it('MCGR can be minted only by mint manager', async () => {
       const { mcgr, otherAcc } = await loadFixture(deployFixture);
 
-      await expect(mcgr.connect(otherAcc).mint(otherAcc.address, 10)).to.be.revertedWith(`AccessControl: account ${otherAccAddress} is missing role ${minter_role}`);
+      await expect(mcgr.connect(otherAcc).mint(otherAcc.address, 10)).to.be.revertedWith(
+        `AccessControl: account ${otherAccAddress} is missing role ${minter_role}`,
+      );
       expect(await mcgr.mint(otherAcc.address, 10)).to.changeTokenBalance(mcgr, otherAcc, 10);
     });
 
@@ -75,7 +76,9 @@ describe(`Tokens`, function () {
 
       await mcgr.mint(otherAcc.address, 10);
 
-      await expect(mcgr.connect(otherAcc).burn(otherAcc.address, 10)).to.be.revertedWith(`AccessControl: account ${otherAccAddress} is missing role ${burner_role}`);
+      await expect(mcgr.connect(otherAcc).burn(otherAcc.address, 10)).to.be.revertedWith(
+        `AccessControl: account ${otherAccAddress} is missing role ${burner_role}`,
+      );
       expect(await mcgr.burn(otherAcc.address, 10)).to.changeTokenBalance(mcgr, otherAcc, -10);
     });
   });
@@ -84,7 +87,9 @@ describe(`Tokens`, function () {
     it('NRGS can be minted only by mint manager', async () => {
       const { nrgs, otherAcc } = await loadFixture(deployFixture);
 
-      await expect(nrgs.connect(otherAcc).mint(otherAcc.address, 0)).to.be.revertedWith(`AccessControl: account ${otherAccAddress} is missing role ${minter_role}`);
+      await expect(nrgs.connect(otherAcc).mint(otherAcc.address, 0)).to.be.revertedWith(
+        `AccessControl: account ${otherAccAddress} is missing role ${minter_role}`,
+      );
       expect(await nrgs.mint(otherAcc.address, 0)).to.changeTokenBalance(nrgs, otherAcc, 1);
     });
 
@@ -93,7 +98,9 @@ describe(`Tokens`, function () {
 
       await nrgs.mint(otherAcc.address, 0);
 
-      await expect(nrgs.connect(otherAcc).burn(0)).to.be.revertedWith(`AccessControl: account ${otherAccAddress} is missing role ${burner_role}`);
+      await expect(nrgs.connect(otherAcc).burn(0)).to.be.revertedWith(
+        `AccessControl: account ${otherAccAddress} is missing role ${burner_role}`,
+      );
       expect(await nrgs.burn(0)).to.changeTokenBalance(nrgs, otherAcc, -1);
     });
   });
@@ -118,7 +125,9 @@ describe(`Tokens`, function () {
     it('ELU can be minted only by mint manager', async () => {
       const { elu, otherAcc } = await loadFixture(deployFixture);
 
-      await expect(elu.connect(otherAcc).mint(otherAcc.address, 0, otherAcc.address)).to.be.revertedWith(`AccessControl: account ${otherAccAddress} is missing role ${minter_role}`);
+      await expect(elu.connect(otherAcc).mint(otherAcc.address, 0, otherAcc.address)).to.be.revertedWith(
+        `AccessControl: account ${otherAccAddress} is missing role ${minter_role}`,
+      );
       expect(await elu.mint(otherAcc.address, 0, otherAcc.address)).to.changeTokenBalance(elu, otherAcc, 1);
     });
 
@@ -127,7 +136,9 @@ describe(`Tokens`, function () {
 
       await elu.mint(otherAcc.address, 0, otherAcc.address);
 
-      await expect(elu.connect(otherAcc).burn(0)).to.be.revertedWith(`AccessControl: account ${otherAccAddress} is missing role ${burner_role}`);
+      await expect(elu.connect(otherAcc).burn(0)).to.be.revertedWith(
+        `AccessControl: account ${otherAccAddress} is missing role ${burner_role}`,
+      );
       expect(await elu.burn(0)).to.changeTokenBalance(elu, otherAcc, -1);
     });
   });
