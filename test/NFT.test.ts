@@ -110,16 +110,16 @@ describe(`Tokens`, function () {
       const { elu, otherAcc, deployer } = await loadFixture(deployFixture);
 
       expect(await elu.mint(otherAcc.address, 0, deployer.address)).to.changeTokenBalance(elu, otherAcc, 1);
-      expect(await elu.userToSupplier(otherAcc.address)).to.eq(deployer.address);
+      expect(await elu.userToSupplier(otherAcc.address, 0)).to.eq(deployer.address);
     });
 
     it('ELU after burning deletes userToSupplier', async () => {
       const { elu, otherAcc, deployer } = await loadFixture(deployFixture);
 
       expect(await elu.mint(otherAcc.address, 0, deployer.address)).to.changeTokenBalance(elu, otherAcc, 1);
-      expect(await elu.userToSupplier(otherAcc.address)).to.eq(deployer.address);
+      expect(await elu.userToSupplier(otherAcc.address, 0)).to.eq(deployer.address);
       expect(await elu.burn(0)).to.changeTokenBalance(elu, otherAcc, -1);
-      expect(await elu.userToSupplier(otherAcc.address)).to.eq(ethers.constants.AddressZero);
+      expect(await elu.userToSupplier(otherAcc.address, 0)).to.eq(ethers.constants.AddressZero);
     });
 
     it('ELU can be minted only by mint manager', async () => {

@@ -34,7 +34,15 @@ describe('Staking', function () {
     await fixedPoint.deployed();
 
     const Manager: ContractFactory = await ethers.getContractFactory('Manager');
-    const manager: Manager = (await Manager.deploy(mcgr.address, elu.address, nrgs.address, 10, 5)) as Manager;
+    const manager: Manager = (await Manager.deploy(
+      mcgr.address,
+      elu.address,
+      nrgs.address,
+      deployer.address,
+      10,
+      5,
+      10,
+    )) as Manager;
     await manager.deployed();
 
     const StakingReward: ContractFactory = await ethers.getContractFactory('StakingReward', {

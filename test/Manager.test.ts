@@ -35,7 +35,15 @@ describe('Manager', function () {
     await elu.deployed();
 
     const Manager: ContractFactory = await ethers.getContractFactory('Manager');
-    const manager: Manager = (await Manager.deploy(mcgr.address, elu.address, nrgs.address, 10, 5)) as Manager;
+    const manager: Manager = (await Manager.deploy(
+      mcgr.address,
+      elu.address,
+      nrgs.address,
+      deployer.address,
+      10,
+      5,
+      10,
+    )) as Manager;
     await manager.deployed();
 
     const FixedPointMath: ContractFactory = await ethers.getContractFactory('FixedPointMath');
@@ -208,13 +216,27 @@ describe('Manager', function () {
       expect(changes).to.emit(manager, 'RegisterChanged');
     });
 
-    it('Manager can change Register', async () => {
+    it('Manager can change Oracle', async () => {
       const { manager, oracle } = await loadFixture(deployFixture);
 
       const changes = await manager.changeOracle(oracle.address);
 
       expect(await manager.oracle()).to.be.eq(oracle.address);
       expect(changes).to.emit(manager, 'OracleChanged');
+    });
+
+    it('Manager can change feeReceiver', async () => {
+      const { manager, deployer, otherAcc } = await loadFixture(deployFixture);
+
+      const prev = await manager.feeReceiver();
+
+      const changes = await manager.changeFeeReceiver(otherAccAddress);
+      const curr = await manager.feeReceiver();
+
+      expect(prev).to.be.eq(deployer.address);
+      expect(curr).to.be.eq(otherAcc.address);
+
+      expect(changes).to.emit(manager, 'FeeReceiverChanged');
     });
 
     it('Manager can change RewardAmount', async () => {
@@ -229,6 +251,20 @@ describe('Manager', function () {
       expect(currReward).to.be.eq(20);
 
       expect(changes).to.emit(manager, 'RewardAmountChanged');
+    });
+
+    it('Manager can change fees amount', async () => {
+      const { manager } = await loadFixture(deployFixture);
+
+      const prev = await manager.fees();
+
+      const changes = await manager.changeFees(20);
+      const curr = await manager.fees();
+
+      expect(prev).to.be.eq(10);
+      expect(curr).to.be.eq(20);
+
+      expect(changes).to.emit(manager, 'FeesChanged');
     });
 
     it('Manager can change Tolerance', async () => {
@@ -260,6 +296,8 @@ describe('Manager', function () {
       await expect(manager.connect(otherAcc).changeOracle(otherAcc.address)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeRewardAmount(20)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeTolerance(20)).to.be.revertedWith(errorMsg);
+      await expect(manager.connect(otherAcc).changeFeeReceiver(otherAcc.address)).to.be.revertedWith(errorMsg);
+      await expect(manager.connect(otherAcc).changeFees(20)).to.be.revertedWith(errorMsg);
     });
 
     it('Zero Address Check', async () => {
@@ -273,6 +311,7 @@ describe('Manager', function () {
       await expect(manager.changeStakingContract(addressZero)).to.be.revertedWith(errorMsg);
       await expect(manager.changeRegister(addressZero)).to.be.revertedWith(errorMsg);
       await expect(manager.changeOracle(addressZero)).to.be.revertedWith(errorMsg);
+      await expect(manager.changeFeeReceiver(addressZero)).to.be.revertedWith(errorMsg);
     });
 
     it('Greater than zero Check', async () => {
@@ -281,6 +320,7 @@ describe('Manager', function () {
 
       await expect(manager.changeRewardAmount(0)).to.be.revertedWith(errorMsg);
       await expect(manager.changeTolerance(0)).to.be.revertedWith(errorMsg);
+      await expect(manager.changeFees(0)).to.be.revertedWith(errorMsg);
     });
   });
 });

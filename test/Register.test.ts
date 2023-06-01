@@ -30,7 +30,15 @@ describe('Register', function () {
     await elu.deployed();
 
     const Manager: ContractFactory = await ethers.getContractFactory('Manager');
-    const manager: Manager = (await Manager.deploy(mcgr.address, elu.address, nrgs.address, 10, 5)) as Manager;
+    const manager: Manager = (await Manager.deploy(
+      mcgr.address,
+      elu.address,
+      nrgs.address,
+      deployer.address,
+      10,
+      5,
+      10,
+    )) as Manager;
     await manager.deployed();
 
     const FixedPointMath: ContractFactory = await ethers.getContractFactory('FixedPointMath');
@@ -158,7 +166,7 @@ describe('Register', function () {
       const registration = await register.registerElectricityUser(deployer.address, 5, deployer.address);
 
       const ownerOf5 = await elu.ownerOf(5);
-      const userToSup = await elu.userToSupplier(deployer.address);
+      const userToSup = await elu.userToSupplier(deployer.address, 5);
 
       expect(registration).to.emit(register, 'UserRegistered');
       expect(registration).to.emit(elu, 'Transfer');
@@ -171,7 +179,7 @@ describe('Register', function () {
       const registration = await register.registerElectricityUser(deployer.address, 5, deployer.address);
 
       const ownerOf5 = await elu.ownerOf(5);
-      const userToSup = await elu.userToSupplier(deployer.address);
+      const userToSup = await elu.userToSupplier(deployer.address, 5);
 
       expect(registration).to.emit(register, 'UserRegistered');
       expect(registration).to.emit(elu, 'Transfer');

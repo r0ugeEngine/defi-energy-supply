@@ -35,7 +35,15 @@ describe('Oracle', function () {
     await elu.deployed();
 
     const Manager: ContractFactory = await ethers.getContractFactory('Manager');
-    const manager: Manager = (await Manager.deploy(mcgr.address, elu.address, nrgs.address, 10, 5)) as Manager;
+    const manager: Manager = (await Manager.deploy(
+      mcgr.address,
+      elu.address,
+      nrgs.address,
+      deployer.address,
+      10,
+      5,
+      10,
+    )) as Manager;
     await manager.deployed();
 
     const FixedPointMath: ContractFactory = await ethers.getContractFactory('FixedPointMath');
