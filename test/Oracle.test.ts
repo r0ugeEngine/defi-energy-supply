@@ -226,40 +226,44 @@ describe('Oracle', function () {
       expect(userTokenConsumptions1.timestamp).to.equal(timestamp);
       expect(userTokenConsumptions1.consumption).to.equal(consumption);
 
-      await expect(oracle.recordEnergyConsumption(user, tokenId, timestamp + 50, consumption + 10)).to.be.revertedWith("EnergyOracle: Previous value is not within acceptable range")
+      await expect(oracle.recordEnergyConsumption(user, tokenId, timestamp + 50, consumption + 10)).to.be.revertedWith(
+        'EnergyOracle: Previous value is not within acceptable range',
+      );
     });
 
     it('Only ORACLE_PROVIDER_ROLE can record energy consumption', async () => {
       const { oracle, otherAcc } = await loadFixture(deployFixture);
-      const error = `AccessControl: account ${otherAccAddress} is missing role ${oracle_provider}`
+      const error = `AccessControl: account ${otherAccAddress} is missing role ${oracle_provider}`;
 
-      await expect(oracle.connect(otherAcc).recordEnergyConsumption(otherAcc.address, 1, 50, 10)).to.be.revertedWith(error)
+      await expect(oracle.connect(otherAcc).recordEnergyConsumption(otherAcc.address, 1, 50, 10)).to.be.revertedWith(
+        error,
+      );
     });
 
     it('Only ENERGY_ORACLE_MANAGER_ROLE can pause/unpause', async () => {
       const { oracle, otherAcc } = await loadFixture(deployFixture);
 
-      const error = `AccessControl: account ${otherAccAddress} is missing role ${energy_oracle_manager}`
+      const error = `AccessControl: account ${otherAccAddress} is missing role ${energy_oracle_manager}`;
 
-      await expect(oracle.connect(otherAcc).pause()).to.be.revertedWith(error)
+      await expect(oracle.connect(otherAcc).pause()).to.be.revertedWith(error);
 
-      await expect(oracle.connect(otherAcc).unpause()).to.be.revertedWith(error)
+      await expect(oracle.connect(otherAcc).unpause()).to.be.revertedWith(error);
     });
 
     it('Only ESCROW can get energy consumption', async () => {
       const { oracle, otherAcc } = await loadFixture(deployFixture);
-      const error = `AccessControl: account ${otherAccAddress} is missing role ${escrow_role}`
+      const error = `AccessControl: account ${otherAccAddress} is missing role ${escrow_role}`;
 
-      await expect(oracle.connect(otherAcc).getEnergyConsumption(otherAcc.address, 1)).to.be.revertedWith(error)
+      await expect(oracle.connect(otherAcc).getEnergyConsumption(otherAcc.address, 1)).to.be.revertedWith(error);
     });
 
     it('Zero address checks', async () => {
       const { oracle } = await loadFixture(deployFixture);
-      const error = "EnergyOracle: account is address 0"
+      const error = 'EnergyOracle: account is address 0';
       const address0 = ethers.constants.AddressZero;
 
-      await expect(oracle.recordEnergyConsumption(address0, 1, 50, 10)).to.be.revertedWith(error)
-      await expect(oracle.getEnergyConsumption(address0, 1)).to.be.revertedWith(error)
+      await expect(oracle.recordEnergyConsumption(address0, 1, 50, 10)).to.be.revertedWith(error);
+      await expect(oracle.getEnergyConsumption(address0, 1)).to.be.revertedWith(error);
     });
 
     it('Pausable', async () => {
@@ -267,19 +271,19 @@ describe('Oracle', function () {
 
       await elu.mint(otherAccAddress, 1, otherAccAddress);
 
-      const error = "Pausable: paused"
+      const error = 'Pausable: paused';
 
-      await oracle.recordEnergyConsumption(otherAccAddress, 1, 50, 10)
+      await oracle.recordEnergyConsumption(otherAccAddress, 1, 50, 10);
       await oracle.getEnergyConsumption(otherAccAddress, 1);
 
       await oracle.pause();
 
-      await expect(oracle.recordEnergyConsumption(otherAccAddress, 1, 50, 10)).to.be.revertedWith(error)
-      await expect(oracle.getEnergyConsumption(otherAccAddress, 1)).to.be.revertedWith(error)
+      await expect(oracle.recordEnergyConsumption(otherAccAddress, 1, 50, 10)).to.be.revertedWith(error);
+      await expect(oracle.getEnergyConsumption(otherAccAddress, 1)).to.be.revertedWith(error);
 
       await oracle.unpause();
 
-      await oracle.recordEnergyConsumption(otherAccAddress, 1, 50, 10)
+      await oracle.recordEnergyConsumption(otherAccAddress, 1, 50, 10);
       await oracle.getEnergyConsumption(otherAccAddress, 1);
     });
 
@@ -288,10 +292,10 @@ describe('Oracle', function () {
 
       await elu.mint(otherAccAddress, 1, otherAccAddress);
 
-      const error = 'ERC721: invalid token ID'
+      const error = 'ERC721: invalid token ID';
 
-      await expect(oracle.recordEnergyConsumption(otherAccAddress, 2, 50, 10)).to.be.revertedWith(error)
-      await expect(oracle.getEnergyConsumption(otherAccAddress, 2)).to.be.revertedWith(error)
+      await expect(oracle.recordEnergyConsumption(otherAccAddress, 2, 50, 10)).to.be.revertedWith(error);
+      await expect(oracle.getEnergyConsumption(otherAccAddress, 2)).to.be.revertedWith(error);
     });
 
     it('Only correct timestamp for record accepted', async () => {
@@ -299,11 +303,11 @@ describe('Oracle', function () {
 
       await elu.mint(otherAccAddress, 1, otherAccAddress);
 
-      const error = 'EnergyOracle: timestamp has not yet arrived'
+      const error = 'EnergyOracle: timestamp has not yet arrived';
 
-      const timestamp = await time.latest() + 100;
+      const timestamp = (await time.latest()) + 100;
 
-      await expect(oracle.recordEnergyConsumption(otherAccAddress, 1, timestamp, 10)).to.be.revertedWith(error)
+      await expect(oracle.recordEnergyConsumption(otherAccAddress, 1, timestamp, 10)).to.be.revertedWith(error);
     });
   });
 });

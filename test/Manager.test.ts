@@ -75,7 +75,21 @@ describe('Manager', function () {
 
     await stakingReward.grantRole(staking_role, register.address);
 
-    return { manager, MCGR, mcgr, elu, ELU, nrgs, NRGS, stakingReward, StakingReward, oracle, register, deployer, otherAcc };
+    return {
+      manager,
+      MCGR,
+      mcgr,
+      elu,
+      ELU,
+      nrgs,
+      NRGS,
+      stakingReward,
+      StakingReward,
+      oracle,
+      register,
+      deployer,
+      otherAcc,
+    };
   }
 
   it('Deployed correctly', async () => {
@@ -230,7 +244,6 @@ describe('Manager', function () {
 
       expect(changes).to.emit(manager, 'ToleranceChanged');
     });
-
   });
 
   describe('Errors', function () {
