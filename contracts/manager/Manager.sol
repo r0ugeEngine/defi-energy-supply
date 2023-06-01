@@ -7,6 +7,7 @@ import "./interfaces/IManager.sol";
 
 /**
  * @title Manager contract for contracts management
+ * @dev This contract manages the links to various contracts and stores configuration values for the system.
  * @author Bohdan
  */
 contract Manager is AccessControl, IManager {
@@ -44,21 +45,21 @@ contract Manager is AccessControl, IManager {
     bytes32 public constant MANAGER_ROLE = keccak256(bytes("MANAGER_ROLE"));
 
     // Contracts
-    ///@dev Reward token
+    /// @dev Reward token
     IMCGR public MCGR;
-    ///@dev Electricity user NFT token
+    /// @dev Electricity user NFT token
     IELU public ELU;
-    ///@dev Energy Supplier NFT token
+    /// @dev Energy Supplier NFT token
     INRGS public NRGS;
 
-    ///@dev Staking contract
+    /// @dev Staking contract
     IStakingReward public staking;
-    ///@dev Oracle contract
+    /// @dev Oracle contract
     IEnergyOracle public oracle;
-    ///@dev Register contract
+    /// @dev Register contract
     IRegister public register;
 
-    ///@dev Address where fees will be paid
+    /// @dev Address where fees will be paid
     address public feeReceiver;
 
     // Values
@@ -82,18 +83,18 @@ contract Manager is AccessControl, IManager {
     }
 
     /**
-     * @notice Constructor to initialize StakingManagement contract
+     * @notice Constructor to initialize the Manager contract
      * @dev Grants `DEFAULT_ADMIN_ROLE` and `MANAGER_ROLE` roles to `msg.sender`
      * Sets `MCGR` token address, `ELU` and `NRGS` tokens addresses, `staking` address
      * Sets `feeReceiver` address
-     * Sets `rewardAmount`, `percentage` and `tolerance`
+     * Sets `rewardAmount`, `tolerance`, and `fees`
      */
     constructor(
         IMCGR _MCGR,
         IELU _ELU,
         INRGS _NRGS,
         address _feeReceiver,
-        uint _rewardAmount,
+        uint256 _rewardAmount,
         uint256 _tolerance,
         uint256 _fees
     ) {
