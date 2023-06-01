@@ -68,6 +68,12 @@ contract Manager is AccessControl, IManager {
         _;
     }
 
+    /// @dev Throws if passed value is <=0
+    modifier gtZero(uint256 value) {
+        require(value > 0, "Manager: passed value is <= 0");
+        _;
+    }
+
     /**
      * @notice Constructor to initialize StakingManagement contract
      * @dev Grants `DEFAULT_ADMIN_ROLE` and `MANAGER_ROLE` roles to `msg.sender`
@@ -187,11 +193,14 @@ contract Manager is AccessControl, IManager {
      * @notice Changes reward amount to another amount.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_newRewardAmount` must be > 0
      *
      * @param _newRewardAmount uint256
      * @return bool
      */
-    function changeRewardAmount(uint256 _newRewardAmount) external onlyRole(MANAGER_ROLE) returns (bool) {
+    function changeRewardAmount(
+        uint256 _newRewardAmount
+    ) external onlyRole(MANAGER_ROLE) gtZero(_newRewardAmount) returns (bool) {
         emit RewardAmountChanged(msg.sender, _newRewardAmount);
 
         rewardAmount = _newRewardAmount;
@@ -202,19 +211,17 @@ contract Manager is AccessControl, IManager {
      * @notice Changes tolerance amount to another amount.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_newTolerance` must be > 0
      *
      * @param _newTolerance uint256
      * @return bool
      */
-    function changeTolerance(uint256 _newTolerance) external onlyRole(MANAGER_ROLE) returns (bool) {
+    function changeTolerance(
+        uint256 _newTolerance
+    ) external onlyRole(MANAGER_ROLE) gtZero(_newTolerance) returns (bool) {
         emit ToleranceChanged(msg.sender, _newTolerance);
 
         tolerance = _newTolerance;
         return true;
-    }
-
-    /// @inheritdoc AccessControl
-    function supportsInterface(bytes4 interfaceId) public view override(AccessControl) returns (bool) {
-        return super.supportsInterface(interfaceId);
     }
 }
