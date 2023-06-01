@@ -115,6 +115,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes MCGR link to another contract.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_MCGR` must be not address 0
      *
      * @param _MCGR IMCGR
      * @return bool
@@ -130,6 +131,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes NRGS link to another contract.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_NRGS` must be not address 0
      *
      * @param _NRGS INRGS
      * @return bool
@@ -145,6 +147,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes ELU link to another contract.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_ELU` must be not address 0
      *
      * @param _ELU IELU
      * @return bool
@@ -160,6 +163,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes `staking` link to another contract.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_staking` must be not address 0
      *
      * @param _staking IStakingReward
      * @return bool
@@ -177,6 +181,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes `oracle` link to another contract.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_oracle` must be not address 0
      *
      * @param _oracle IEnergyOracle
      * @return bool
@@ -194,6 +199,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes `register` link to another contract.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_register` must be not address 0
      *
      * @param _register IRegister
      * @return bool
@@ -211,6 +217,7 @@ contract Manager is AccessControl, IManager {
      * @notice Changes `feeReceiver` link to another address.
      * Requirements:
      * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_newFeeReceiver` must be not address 0
      *
      * @param _newFeeReceiver address
      * @return bool
