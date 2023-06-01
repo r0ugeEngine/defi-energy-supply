@@ -99,7 +99,7 @@ contract EnergyOracle is AccessControl, Pausable {
         uint tokenId,
         uint256 timestamp,
         uint256 consumption
-    ) external onlyRole(ORACLE_PROVIDER_ROLE) zeroAddressCheck(user) isCorrectUser(user, tokenId) {
+    ) external onlyRole(ORACLE_PROVIDER_ROLE) whenNotPaused zeroAddressCheck(user) isCorrectUser(user, tokenId) {
         require(timestamp <= block.timestamp, "EnergyOracle: timestamp has not yet arrived");
 
         EnergyConsumption[] storage consumptions = _energyConsumptions[user][tokenId];
