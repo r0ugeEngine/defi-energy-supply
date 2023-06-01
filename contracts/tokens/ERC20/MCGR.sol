@@ -44,9 +44,4 @@ contract MCGR is TokenRoles, ERC20, AccessControl {
     function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
         _burn(from, amount);
     }
-
-    /// @inheritdoc AccessControl
-    function supportsInterface(bytes4 interfaceId) public view override(AccessControl) returns (bool) {
-        return super.supportsInterface(interfaceId);
-    }
 }
