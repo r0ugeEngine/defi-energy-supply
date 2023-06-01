@@ -27,9 +27,15 @@ interface IManager {
     ///@dev Register contract
     function register() external view returns (IRegister);
 
+    ///@dev Address where fees will be paid
+    function feeReceiver() external view returns (address);
+
     /// @dev Amount of rewards to suppliers
     function rewardAmount() external view returns (uint256);
 
     /// @dev Tolerance for equality
     function tolerance() external view returns (uint256);
+
+    /// @dev Fees for payments to creators
+    function fees() external view returns (uint256);
 }
