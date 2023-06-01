@@ -15,4 +15,7 @@ interface IELU is INFTTemplate {
     /// @dev Burns `from` address ELU token
     /// @param tokenId uint256
     function burn(uint256 tokenId) external;
+
+    /// @dev Mapping for linked users to suppliers.
+    function userToSupplier(address user, uint256 tokenId) external view returns (address supplier);
 }
