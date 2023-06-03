@@ -6,7 +6,7 @@ import "../../staking/interfaces/IStakingReward.sol";
 import "../../register/interfaces/IRegister.sol";
 import "../../tokens/ERC20/interfaces/IMCGR.sol";
 import "../../tokens/ERC721/interfaces/INRGS.sol";
-import "../../tokens/ERC721/interfaces/IELU.sol";
+import "../../tokens/ERC1155/interfaces/IELU.sol";
 import "../../escrow/interfaces/IEscrow.sol";
 
 interface IManager {

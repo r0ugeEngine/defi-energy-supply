@@ -52,20 +52,21 @@ contract Escrow is AccessControl {
      * - `supplier` must be not address 0
      *
      * @param user The address of the user.
-     * @param tokenId The ID of the token.
+     * @param supplierId The ID of the token.
      * @param supplier The address of the supplier.
      * @param paidAmount The amount of funds sent by the user.
      */
     function sendFundsToSupplier(
         address user,
-        uint256 tokenId,
+        uint256 supplierId,
         address supplier,
         uint256 paidAmount
     ) public onlyRole(ESCROW_MANAGER_ROLE) zeroAddressCheck(user) zeroAddressCheck(supplier) gtZero(paidAmount) {
-        uint256 consumption = manager.oracle().getEnergyConsumption(user, tokenId);
+        uint256 consumption = manager.oracle().getEnergyConsumption(user, supplierId);
         uint256 needToBePaid = consumption + manager.fees();
 
-        require(manager.ELU().userToSupplier(user, tokenId) == supplier, "Escrow: user connected to another supplier");
+        require(manager.ELU().balanceOf(user, supplierId) > 0, "Escrow: user connected to another supplier");
+
         require(paidAmount >= needToBePaid, "Escrow: not enough funds sent");
 
         uint256 amountRemaining = paidAmount - needToBePaid;
@@ -81,6 +82,6 @@ contract Escrow is AccessControl {
             require(manager.MCGR().transfer(user, amountRemaining), "Escrow: transfer to user failed");
         }
 
-        emit PaidForEnergy(user, tokenId, supplier, consumption);
+        emit PaidForEnergy(user, supplierId, supplier, consumption);
     }
 }

@@ -4,14 +4,17 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-import "../TokenRoles.sol";
-
 /**
  * @title MCGR token contract
  * Can be used as staking reward token, or rewards for Oracle makers.
  * @author Bohdan
  */
-contract MCGR is TokenRoles, ERC20, AccessControl {
+contract MCGR is ERC20, AccessControl {
+    /// @dev Keccak256 hashed `MINTER_ROLE` string
+    bytes32 public constant MINTER_ROLE = keccak256(bytes("MINTER_ROLE"));
+    /// @dev Keccak256 hashed `BURNER_ROLE` string
+    bytes32 public constant BURNER_ROLE = keccak256(bytes("BURNER_ROLE"));
+
     /// @notice Constructor to initialize ERC20 token contract
     /// @dev Grants each roles to `msg.sender`
     /// @dev Sets `name` and `symbol` of ERC20 token

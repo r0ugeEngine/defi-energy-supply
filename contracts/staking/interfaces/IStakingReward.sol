@@ -23,9 +23,8 @@ interface IStakingReward {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
-    function enterStaking(address supplier, uint256 tokenId) external returns (bool);
+    function enterStaking(address supplier, uint256 tokenId) external;
 
     /**
      * @notice Sends rewards to suppliers.
@@ -35,9 +34,8 @@ interface IStakingReward {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
-    function sendRewards(address supplier, uint256 tokenId) external returns (bool);
+    function sendRewards(address supplier, uint256 tokenId) external;
 
     /**
      * @notice Exits staking.
@@ -47,9 +45,8 @@ interface IStakingReward {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
-    function exitStaking(address supplier, uint256 tokenId) external returns (bool);
+    function exitStaking(address supplier, uint256 tokenId) external;
 
     /**
      * @notice Updates rewards for `supplier`.

@@ -23,7 +23,7 @@ contract EnergyOracle is AccessControl, Pausable {
     event EnergyConsumptionRecorded(
         address indexed sender,
         address indexed user,
-        uint256 indexed tokenId,
+        uint256 indexed supplierId,
         uint256 timestamp,
         uint256 consumption
     );
@@ -31,7 +31,7 @@ contract EnergyOracle is AccessControl, Pausable {
     event EnergyConsumptionSent(
         address indexed sender,
         address indexed user,
-        uint256 indexed tokenId,
+        uint256 indexed supplierId,
         uint256 timestamp,
         uint256 consumption
     );
@@ -39,7 +39,7 @@ contract EnergyOracle is AccessControl, Pausable {
     event OutlierDetected(
         address indexed sender,
         address indexed user,
-        uint256 indexed tokenId,
+        uint256 indexed supplierId,
         uint256 timestamp,
         uint256 consumption
     );
@@ -55,7 +55,7 @@ contract EnergyOracle is AccessControl, Pausable {
     IManager public manager;
 
     /// @dev Mapping to store consumption
-    mapping(address => mapping(uint256 => EnergyConsumption[])) private _energyConsumptions; // user => tokenId => id => EnergyConsumptions
+    mapping(address => mapping(uint256 => EnergyConsumption[])) private _energyConsumptions; // user => supplierId => id => EnergyConsumptions
     mapping(address => mapping(uint => mapping(uint256 => bool))) private consumedTimestamps;
 
     /// @dev Throws if passed address 0 as parameter
@@ -65,8 +65,8 @@ contract EnergyOracle is AccessControl, Pausable {
     }
 
     /// @dev Throws if passed address 0 as parameter
-    modifier isCorrectUser(address account, uint tokenId) {
-        require(manager.ELU().ownerOf(tokenId) == account, "EnergyOracle: user is not correct");
+    modifier isCorrectUser(address account, uint supplierId) {
+        require(manager.ELU().balanceOf(account, supplierId) > 0, "EnergyOracle: user is not correct");
         _;
     }
 
@@ -86,23 +86,23 @@ contract EnergyOracle is AccessControl, Pausable {
      * @dev
      * Requirements:
      * - `msg.sender` must have ORACLE_PROVIDER_ROLE
-     * - `user` must have token with `tokenId`
+     * - `user` must have token with `supplierId`
      * - `timestamp` must be equal to 21:00
      *
      * @param user The user address
-     * @param tokenId The token ID
+     * @param supplierId The token ID
      * @param timestamp The timestamp for the energy consumption
      * @param consumption The energy consumption value
      */
     function recordEnergyConsumption(
         address user,
-        uint tokenId,
+        uint supplierId,
         uint256 timestamp,
         uint256 consumption
-    ) external onlyRole(ORACLE_PROVIDER_ROLE) whenNotPaused zeroAddressCheck(user) isCorrectUser(user, tokenId) {
+    ) external onlyRole(ORACLE_PROVIDER_ROLE) whenNotPaused zeroAddressCheck(user) isCorrectUser(user, supplierId) {
         require(timestamp <= block.timestamp, "EnergyOracle: timestamp has not yet arrived");
 
-        EnergyConsumption[] storage consumptions = _energyConsumptions[user][tokenId];
+        EnergyConsumption[] storage consumptions = _energyConsumptions[user][supplierId];
 
         // Check if the previous value is within the acceptable range
         if (consumptions.length > 0) {
@@ -125,32 +125,32 @@ contract EnergyOracle is AccessControl, Pausable {
         uint256 median = calculateMedian(consumptions);
 
         // Clear the array
-        delete _energyConsumptions[user][tokenId];
+        delete _energyConsumptions[user][supplierId];
 
         // Update the median value in the storage
         consumptions.push(EnergyConsumption(timestamp, median));
-        _energyConsumptions[user][tokenId] = consumptions;
+        _energyConsumptions[user][supplierId] = consumptions;
 
-        emit EnergyConsumptionRecorded(msg.sender, user, tokenId, timestamp, consumption);
+        emit EnergyConsumptionRecorded(msg.sender, user, supplierId, timestamp, consumption);
     }
 
     /// @notice Gets the energy consumption for a user, token
     /// Requirements: `msg.sender` must have ORACLE_PROVIDER_ROLE
     /// @param user The user address
-    /// @param tokenId The token ID
+    /// @param supplierId The token ID
     /// @return consumption The energy consumption value
     function getEnergyConsumption(
         address user,
-        uint256 tokenId
+        uint256 supplierId
     )
         public
         onlyRole(ESCROW)
         whenNotPaused
         zeroAddressCheck(user)
-        isCorrectUser(user, tokenId)
+        isCorrectUser(user, supplierId)
         returns (uint256 consumption)
     {
-        EnergyConsumption[] memory userTokenConsumptions = _energyConsumptions[user][tokenId];
+        EnergyConsumption[] memory userTokenConsumptions = _energyConsumptions[user][supplierId];
 
         if (userTokenConsumptions.length == 0) {
             return 0;
@@ -159,9 +159,9 @@ contract EnergyOracle is AccessControl, Pausable {
         consumption = userTokenConsumptions[0].consumption;
 
         // Clear the energy consumption array
-        delete _energyConsumptions[user][tokenId];
+        delete _energyConsumptions[user][supplierId];
 
-        emit EnergyConsumptionSent(msg.sender, user, tokenId, block.timestamp, consumption);
+        emit EnergyConsumptionSent(msg.sender, user, supplierId, block.timestamp, consumption);
 
         return consumption;
     }
@@ -187,17 +187,17 @@ contract EnergyOracle is AccessControl, Pausable {
     /**
      * @dev Retrieves the timestamp and consumption value for a specific energy consumption record.
      * @param user The address of the user.
-     * @param tokenId The ID of the token.
+     * @param supplierId The ID of the token.
      * @param id The index of the energy consumption record.
      * @return timestamp The timestamp of the energy consumption record.
      * @return consumption The consumption value of the energy consumption record.
      */
     function energyConsumptions(
         address user,
-        uint256 tokenId,
+        uint256 supplierId,
         uint256 id
     ) public view returns (uint timestamp, uint consumption) {
-        EnergyConsumption memory energyConsumption = _energyConsumptions[user][tokenId][id];
+        EnergyConsumption memory energyConsumption = _energyConsumptions[user][supplierId][id];
         timestamp = energyConsumption.timestamp;
         consumption = energyConsumption.consumption;
     }
