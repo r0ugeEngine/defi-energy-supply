@@ -2,7 +2,7 @@ import { time, loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { BigNumber, ContractFactory } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { FixedPointMath, MCGR, Manager, Register, StakingReward, EnergyOracle } from '../typechain';
+import { FixedPointMath, MCGR, Manager, Register, StakingReward, EnergyOracle, Escrow } from '../typechain';
 import { ELU } from '../typechain/contracts/tokens/ERC721/ELU';
 import { NRGS } from '../typechain/contracts/tokens/ERC721/NRGS';
 
@@ -64,6 +64,10 @@ describe('Manager', function () {
     const oracle: EnergyOracle = (await Oracle.deploy(manager.address)) as EnergyOracle;
     await oracle.deployed();
 
+    const Escrow: ContractFactory = await ethers.getContractFactory('Escrow');
+    const escrow: Escrow = (await Escrow.deploy(manager.address)) as Escrow;
+    await escrow.deployed();
+
     minter_role = await mcgr.MINTER_ROLE();
     burner_role = await mcgr.BURNER_ROLE();
     admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
@@ -95,19 +99,21 @@ describe('Manager', function () {
       StakingReward,
       oracle,
       register,
+      escrow,
       deployer,
       otherAcc,
     };
   }
 
   it('Deployed correctly', async () => {
-    const { mcgr, elu, nrgs, stakingReward, register, manager, deployer } = await loadFixture(deployFixture);
+    const { mcgr, elu, nrgs, stakingReward, register, manager, escrow, deployer } = await loadFixture(deployFixture);
 
     expect(mcgr.address).to.be.properAddress;
     expect(nrgs.address).to.be.properAddress;
     expect(elu.address).to.be.properAddress;
     expect(stakingReward.address).to.be.properAddress;
     expect(register.address).to.be.properAddress;
+    expect(escrow.address).to.be.properAddress;
 
     expect(await mcgr.name()).to.be.eq('Mictrogrid Reward token');
     expect(await mcgr.symbol()).to.be.eq('MCGR');
@@ -225,6 +231,15 @@ describe('Manager', function () {
       expect(changes).to.emit(manager, 'OracleChanged');
     });
 
+    it('Manager can change Escrow', async () => {
+      const { manager, escrow } = await loadFixture(deployFixture);
+
+      const changes = await manager.changeEscrow(escrow.address);
+
+      expect(await manager.escrow()).to.be.eq(escrow.address);
+      expect(changes).to.emit(manager, 'EscrowChanged');
+    });
+
     it('Manager can change feeReceiver', async () => {
       const { manager, deployer, otherAcc } = await loadFixture(deployFixture);
 
@@ -294,6 +309,7 @@ describe('Manager', function () {
       await expect(manager.connect(otherAcc).changeStakingContract(otherAcc.address)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeRegister(otherAcc.address)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeOracle(otherAcc.address)).to.be.revertedWith(errorMsg);
+      await expect(manager.connect(otherAcc).changeEscrow(otherAcc.address)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeRewardAmount(20)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeTolerance(20)).to.be.revertedWith(errorMsg);
       await expect(manager.connect(otherAcc).changeFeeReceiver(otherAcc.address)).to.be.revertedWith(errorMsg);
@@ -311,6 +327,7 @@ describe('Manager', function () {
       await expect(manager.changeStakingContract(addressZero)).to.be.revertedWith(errorMsg);
       await expect(manager.changeRegister(addressZero)).to.be.revertedWith(errorMsg);
       await expect(manager.changeOracle(addressZero)).to.be.revertedWith(errorMsg);
+      await expect(manager.changeEscrow(addressZero)).to.be.revertedWith(errorMsg);
       await expect(manager.changeFeeReceiver(addressZero)).to.be.revertedWith(errorMsg);
     });
 
