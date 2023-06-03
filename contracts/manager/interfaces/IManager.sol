@@ -7,6 +7,7 @@ import "../../register/interfaces/IRegister.sol";
 import "../../tokens/ERC20/interfaces/IMCGR.sol";
 import "../../tokens/ERC721/interfaces/INRGS.sol";
 import "../../tokens/ERC721/interfaces/IELU.sol";
+import "../../escrow/interfaces/IEscrow.sol";
 
 interface IManager {
     ///@dev Reward token
@@ -23,6 +24,9 @@ interface IManager {
 
     ///@dev Staking contract
     function oracle() external view returns (IEnergyOracle);
+
+    ///@dev Escrow contract
+    function escrow() external view returns (IEscrow);
 
     ///@dev Register contract
     function register() external view returns (IRegister);

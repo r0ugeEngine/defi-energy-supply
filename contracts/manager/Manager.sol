@@ -11,7 +11,7 @@ import "./interfaces/IManager.sol";
  * @author Bohdan
  */
 contract Manager is AccessControl, IManager {
-    // ERC20
+    // Contracts
     /// @dev Emitted when a manager has changed the `MCGR` link to another contract
     event MCGRchanged(address indexed sender, IMCGR newMCGR);
     // NFTs
@@ -19,15 +19,14 @@ contract Manager is AccessControl, IManager {
     event ELUchanged(address indexed sender, IELU newELU);
     /// @dev Emitted when a manager has changed the `NRGS` link to another contract
     event NRGSchanged(address indexed sender, INRGS newNRGS);
-    // Staking
     /// @dev Emitted when a manager has changed the `staking` link to another contract
     event StakingChanged(address indexed sender, IStakingReward staking);
-    // Oracle
     /// @dev Emitted when a manager has changed the `oracle` link to another contract
     event OracleChanged(address indexed sender, IEnergyOracle oracle);
-    // Register
     /// @dev Emitted when a manager has changed the `register` link to another contract
     event RegisterChanged(address indexed sender, IRegister register);
+    /// @dev Emitted when a manager has changed the `escrow` link to another contract
+    event EscrowChanged(address indexed sender, IEscrow escrow);
 
     // Address
     /// @dev Emitted when a manager has changed the `feeReceiver` link to another address
@@ -58,6 +57,8 @@ contract Manager is AccessControl, IManager {
     IEnergyOracle public oracle;
     /// @dev Register contract
     IRegister public register;
+    /// @dev Escrow contract
+    IEscrow public escrow;
 
     /// @dev Address where fees will be paid
     address public feeReceiver;
@@ -211,6 +212,24 @@ contract Manager is AccessControl, IManager {
         emit RegisterChanged(msg.sender, _register);
 
         register = _register;
+        return true;
+    }
+
+    /**
+     * @notice Changes `escrow` link to another contract.
+     * Requirements:
+     * - `msg.sender` must have `MANAGER_ROLE`
+     * - `_escrow` must be not address 0
+     *
+     * @param _escrow IEscrow
+     * @return bool
+     */
+    function changeEscrow(
+        IEscrow _escrow
+    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_escrow)) returns (bool) {
+        emit EscrowChanged(msg.sender, _escrow);
+
+        escrow = _escrow;
         return true;
     }
 
