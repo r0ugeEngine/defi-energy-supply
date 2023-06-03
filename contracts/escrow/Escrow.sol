@@ -18,7 +18,7 @@ contract Escrow is AccessControl {
     bytes32 public constant ESCROW_MANAGER_ROLE = keccak256(bytes("ESCROW_MANAGER_ROLE"));
 
     /// @dev Manager contract
-    IManager manager;
+    IManager public manager;
 
     /// @dev Throws if passed address 0 as parameter
     modifier zeroAddressCheck(address account) {
