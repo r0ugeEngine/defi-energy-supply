@@ -3,7 +3,7 @@ import { ContractFactory } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { Escrow, MCGR, Manager, OracleMock, MainMock } from '../typechain';
-import { ELU } from '../typechain/contracts/tokens/ERC721/ELU';
+import { ELU } from '../typechain/contracts/tokens/ERC1155/ELU';
 import { NRGS } from '../typechain/contracts/tokens/ERC721/NRGS';
 
 describe('Escrow', function () {

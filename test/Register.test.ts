@@ -3,12 +3,13 @@ import { BigNumber, ContractFactory } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { FixedPointMath, MCGR, Manager, Register, StakingReward } from '../typechain';
-import { ELU } from '../typechain/contracts/tokens/ERC721/ELU';
+import { ELU } from '../typechain/contracts/tokens/ERC1155/ELU';
 import { NRGS } from '../typechain/contracts/tokens/ERC721/NRGS';
+import { staking } from '../typechain/contracts';
 
 describe('Register', function () {
   let otherAccAddress: string;
-  let admin_role: string, minter_role: string, burner_role: string, staking_role: string, register_role: string;
+  let admin_role: string, minter_role: string, burner_role: string, staking_role: string, register_manager_role: string, register_role: string;
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -59,17 +60,16 @@ describe('Register', function () {
     burner_role = await mcgr.BURNER_ROLE();
     admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
     staking_role = await stakingReward.STAKING_MANAGER_ROLE();
-    register_role = await register.REGISTER_MANAGER_ROLE();
+    register_role = await nrgs.REGISTER_ROLE();
+    register_manager_role = await register.REGISTER_MANAGER_ROLE();
 
     await manager.changeRewardAmount(10);
     await manager.changeStakingContract(stakingReward.address);
 
     await mcgr.grantRole(minter_role, stakingReward.address);
 
-    await nrgs.grantRole(minter_role, register.address);
-    await elu.grantRole(minter_role, register.address);
-    await nrgs.grantRole(burner_role, register.address);
-    await elu.grantRole(burner_role, register.address);
+    await nrgs.grantRole(register_role, register.address);
+    await elu.grantRole(register_role, register.address);
 
     await stakingReward.grantRole(staking_role, register.address);
 
@@ -94,21 +94,19 @@ describe('Register', function () {
     expect(await mcgr.hasRole(minter_role, deployer.address)).to.be.true;
     expect(await mcgr.hasRole(minter_role, stakingReward.address)).to.be.true;
     expect(await mcgr.hasRole(burner_role, deployer.address)).to.be.true;
+
     expect(await nrgs.hasRole(admin_role, deployer.address)).to.be.true;
-    expect(await nrgs.hasRole(minter_role, deployer.address)).to.be.true;
-    expect(await nrgs.hasRole(minter_role, register.address)).to.be.true;
-    expect(await nrgs.hasRole(burner_role, deployer.address)).to.be.true;
-    expect(await nrgs.hasRole(burner_role, register.address)).to.be.true;
+    expect(await nrgs.hasRole(register_role, deployer.address)).to.be.true;
+    expect(await nrgs.hasRole(register_role, register.address)).to.be.true;
     expect(await elu.hasRole(admin_role, deployer.address)).to.be.true;
-    expect(await elu.hasRole(minter_role, deployer.address)).to.be.true;
-    expect(await elu.hasRole(minter_role, register.address)).to.be.true;
-    expect(await elu.hasRole(burner_role, deployer.address)).to.be.true;
-    expect(await elu.hasRole(burner_role, register.address)).to.be.true;
+    expect(await elu.hasRole(register_role, deployer.address)).to.be.true;
+    expect(await elu.hasRole(register_role, register.address)).to.be.true;
+
     expect(await stakingReward.hasRole(admin_role, deployer.address)).to.be.true;
     expect(await stakingReward.hasRole(staking_role, deployer.address)).to.be.true;
     expect(await stakingReward.hasRole(staking_role, register.address)).to.be.true;
     expect(await register.hasRole(admin_role, deployer.address)).to.be.true;
-    expect(await register.hasRole(register_role, deployer.address)).to.be.true;
+    expect(await register.hasRole(register_manager_role, deployer.address)).to.be.true;
 
     expect(await stakingReward.manager()).to.be.eq(manager.address);
     expect(await register.manager()).to.be.eq(manager.address);
@@ -116,11 +114,12 @@ describe('Register', function () {
 
   describe('Registers', function () {
     it('Manager can register supllier', async () => {
-      const { register, stakingReward, nrgs, deployer } = await loadFixture(deployFixture);
-      const registration = await register.registerSupplier(deployer.address, 5);
+      const { register, stakingReward, nrgs, elu, deployer } = await loadFixture(deployFixture);
+      const registration = await register.registerSupplier(deployer.address, 5, 10);
 
       const ownerOf5 = await nrgs.ownerOf(5);
       const now = await time.latest();
+      const suppliers = await elu.balanceOf(register.address, 5);
 
       const sup = await stakingReward.suppliers(deployer.address, 5);
 
@@ -130,13 +129,15 @@ describe('Register', function () {
       expect(ownerOf5).to.be.eq(deployer.address);
       expect(sup.updatedAt).to.be.eq(now);
       expect(sup.pendingReward).to.be.eq(0);
+      expect(suppliers).to.eq(10);
     });
 
     it('Manager can un register supllier', async () => {
-      const { register, stakingReward, nrgs, deployer } = await loadFixture(deployFixture);
-      const registration = await register.registerSupplier(deployer.address, 5);
+      const { register, stakingReward, nrgs, elu, deployer } = await loadFixture(deployFixture);
+      const registration = await register.registerSupplier(deployer.address, 5, 10);
 
       const ownerOf5 = await nrgs.ownerOf(5);
+      const suppliers = await elu.balanceOf(register.address, 5);
       let now = await time.latest();
 
       let sup = await stakingReward.suppliers(deployer.address, 5);
@@ -147,6 +148,7 @@ describe('Register', function () {
       expect(ownerOf5).to.be.eq(deployer.address);
       expect(sup.updatedAt).to.be.eq(now);
       expect(sup.pendingReward).to.be.eq(0);
+      expect(suppliers).to.eq(10);
 
       const unRegistration = await register.unRegisterSupplier(deployer.address, 5);
 
@@ -162,34 +164,33 @@ describe('Register', function () {
     });
 
     it('Manager can register users', async () => {
-      const { register, elu, deployer } = await loadFixture(deployFixture);
-      const registration = await register.registerElectricityUser(deployer.address, 5, deployer.address);
+      const { register, elu, deployer, otherAcc } = await loadFixture(deployFixture);
+      const registrationSupplier = await register.registerSupplier(deployer.address, 5, 10);
 
-      const ownerOf5 = await elu.ownerOf(5);
-      const userToSup = await elu.userToSupplier(deployer.address, 5);
+      const registrationUser = await register.registerElectricityUser(otherAcc.address, 5, deployer.address);
 
-      expect(registration).to.emit(register, 'UserRegistered');
-      expect(registration).to.emit(elu, 'Transfer');
-      expect(ownerOf5).to.be.eq(deployer.address);
-      expect(userToSup).to.be.eq(deployer.address);
+
+      expect(registrationUser).to.emit(register, 'UserRegistered');
+      expect(registrationUser).to.emit(elu, 'Transfer');
+      expect(await elu.balanceOf(otherAcc.address, 5)).to.be.eq(1);
     });
 
     it('Manager can un register users', async () => {
-      const { register, elu, deployer } = await loadFixture(deployFixture);
-      const registration = await register.registerElectricityUser(deployer.address, 5, deployer.address);
+      const { register, elu, deployer, otherAcc } = await loadFixture(deployFixture);
+      const registrationSupplier = await register.registerSupplier(deployer.address, 5, 10);
 
-      const ownerOf5 = await elu.ownerOf(5);
-      const userToSup = await elu.userToSupplier(deployer.address, 5);
+      const registrationUser = await register.registerElectricityUser(otherAcc.address, 5, deployer.address);
 
-      expect(registration).to.emit(register, 'UserRegistered');
-      expect(registration).to.emit(elu, 'Transfer');
-      expect(ownerOf5).to.be.eq(deployer.address);
-      expect(userToSup).to.be.eq(deployer.address);
 
-      const unRegistration = await register.unRegisterElectricityUser(deployer.address, 5);
+      expect(registrationUser).to.emit(register, 'UserRegistered');
+      expect(registrationUser).to.emit(elu, 'Transfer');
+      expect(await elu.balanceOf(otherAcc.address, 5)).to.be.eq(1);
+
+      const unRegistration = await register.unRegisterElectricityUser(otherAcc.address, 5);
 
       expect(unRegistration).to.emit(register, 'SupplierUnregistered');
       expect(unRegistration).to.emit(elu, 'Transfer');
+      expect(await elu.balanceOf(otherAcc.address, 5)).to.be.eq(0);
     });
   });
 
@@ -197,9 +198,9 @@ describe('Register', function () {
     it('Only REGISTER_MANAGER_ROLE', async () => {
       const { register, otherAcc, deployer } = await loadFixture(deployFixture);
 
-      const errorMsg = `AccessControl: account ${otherAccAddress} is missing role ${register_role}`;
+      const errorMsg = `AccessControl: account ${otherAccAddress} is missing role ${register_manager_role}`;
 
-      await expect(register.connect(otherAcc).registerSupplier(otherAcc.address, 10)).to.be.revertedWith(errorMsg);
+      await expect(register.connect(otherAcc).registerSupplier(deployer.address, 5, 10)).to.be.revertedWith(errorMsg);
       await expect(
         register.connect(otherAcc).registerElectricityUser(otherAcc.address, 10, deployer.address),
       ).to.be.revertedWith(errorMsg);
@@ -212,9 +213,9 @@ describe('Register', function () {
     it('Zero Address Check', async () => {
       const { register, deployer } = await loadFixture(deployFixture);
       const addressZero = ethers.constants.AddressZero;
-      const errorMsg = 'Register: supplier is address 0';
+      const errorMsg = 'Register: account is address 0';
 
-      await expect(register.registerSupplier(addressZero, 10)).to.be.revertedWith(errorMsg);
+      await expect(register.registerSupplier(addressZero, 10, 5)).to.be.revertedWith(errorMsg);
       await expect(register.registerElectricityUser(addressZero, 10, deployer.address)).to.be.revertedWith(errorMsg);
       await expect(register.registerElectricityUser(deployer.address, 10, addressZero)).to.be.revertedWith(errorMsg);
       await expect(register.unRegisterSupplier(addressZero, 10)).to.be.revertedWith(errorMsg);
@@ -223,10 +224,11 @@ describe('Register', function () {
 
     it('Requires valid token id', async () => {
       const { register, deployer } = await loadFixture(deployFixture);
-      const errorMsg = 'ERC721: invalid token ID';
+      const errorMsgForSupplier = 'ERC721: invalid token ID';
+      const errorMsgForUser = 'ERC1155: burn amount exceeds balance';
 
-      await expect(register.unRegisterSupplier(deployer.address, 10)).to.be.revertedWith(errorMsg);
-      await expect(register.unRegisterElectricityUser(deployer.address, 10)).to.be.revertedWith(errorMsg);
+      await expect(register.unRegisterSupplier(deployer.address, 10)).to.be.revertedWith(errorMsgForSupplier);
+      await expect(register.unRegisterElectricityUser(deployer.address, 10)).to.be.revertedWith(errorMsgForUser);
     });
   });
 });

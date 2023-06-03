@@ -3,7 +3,7 @@ import { BigNumber, ContractFactory } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { EnergyOracle, EscrowMock, FixedPointMath, MCGR, Manager, Register, StakingReward } from '../typechain';
-import { ELU } from '../typechain/contracts/tokens/ERC721/ELU';
+import { ELU } from '../typechain/contracts/tokens/ERC1155/ELU';
 import { NRGS } from '../typechain/contracts/tokens/ERC721/NRGS';
 
 describe('Oracle', function () {
@@ -300,7 +300,7 @@ describe('Oracle', function () {
 
       await elu.mint(otherAccAddress, 1, otherAccAddress);
 
-      const error = 'ERC721: invalid token ID';
+      const error = 'EnergyOracle: user is not correct';
 
       await expect(oracle.recordEnergyConsumption(otherAccAddress, 2, 50, 10)).to.be.revertedWith(error);
       await expect(oracle.getEnergyConsumption(otherAccAddress, 2)).to.be.revertedWith(error);

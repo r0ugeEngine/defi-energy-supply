@@ -3,7 +3,7 @@ import { BigNumber, ContractFactory } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import { FixedPointMath, MCGR, Manager, Register, StakingReward, EnergyOracle, Escrow } from '../typechain';
-import { ELU } from '../typechain/contracts/tokens/ERC721/ELU';
+import { ELU } from '../typechain/contracts/tokens/ERC1155/ELU';
 import { NRGS } from '../typechain/contracts/tokens/ERC721/NRGS';
 
 describe('Manager', function () {
@@ -12,8 +12,9 @@ describe('Manager', function () {
     minter_role: string,
     burner_role: string,
     staking_role: string,
-    register_role: string,
-    manager_role: string;
+    register_manager_role: string,
+    manager_role: string,
+    register_role: string;
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -72,7 +73,8 @@ describe('Manager', function () {
     burner_role = await mcgr.BURNER_ROLE();
     admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
     staking_role = await stakingReward.STAKING_MANAGER_ROLE();
-    register_role = await register.REGISTER_MANAGER_ROLE();
+    register_manager_role = await register.REGISTER_MANAGER_ROLE();
+    register_role = await nrgs.REGISTER_ROLE();
     manager_role = await manager.MANAGER_ROLE();
 
     await manager.changeRewardAmount(10);
@@ -80,10 +82,8 @@ describe('Manager', function () {
 
     await mcgr.grantRole(minter_role, stakingReward.address);
 
-    await nrgs.grantRole(minter_role, register.address);
-    await elu.grantRole(minter_role, register.address);
-    await nrgs.grantRole(burner_role, register.address);
-    await elu.grantRole(burner_role, register.address);
+    await nrgs.grantRole(register_role, register.address);
+    await elu.grantRole(register_role, register.address);
 
     await stakingReward.grantRole(staking_role, register.address);
 
@@ -124,21 +124,20 @@ describe('Manager', function () {
     expect(await mcgr.hasRole(minter_role, deployer.address)).to.be.true;
     expect(await mcgr.hasRole(minter_role, stakingReward.address)).to.be.true;
     expect(await mcgr.hasRole(burner_role, deployer.address)).to.be.true;
+
     expect(await nrgs.hasRole(admin_role, deployer.address)).to.be.true;
-    expect(await nrgs.hasRole(minter_role, deployer.address)).to.be.true;
-    expect(await nrgs.hasRole(minter_role, register.address)).to.be.true;
-    expect(await nrgs.hasRole(burner_role, deployer.address)).to.be.true;
-    expect(await nrgs.hasRole(burner_role, register.address)).to.be.true;
+    expect(await nrgs.hasRole(register_role, deployer.address)).to.be.true;
+    expect(await nrgs.hasRole(register_role, register.address)).to.be.true;
+
     expect(await elu.hasRole(admin_role, deployer.address)).to.be.true;
-    expect(await elu.hasRole(minter_role, deployer.address)).to.be.true;
-    expect(await elu.hasRole(minter_role, register.address)).to.be.true;
-    expect(await elu.hasRole(burner_role, deployer.address)).to.be.true;
-    expect(await elu.hasRole(burner_role, register.address)).to.be.true;
+    expect(await elu.hasRole(register_role, deployer.address)).to.be.true;
+    expect(await elu.hasRole(register_role, register.address)).to.be.true;
+
     expect(await stakingReward.hasRole(admin_role, deployer.address)).to.be.true;
     expect(await stakingReward.hasRole(staking_role, deployer.address)).to.be.true;
     expect(await stakingReward.hasRole(staking_role, register.address)).to.be.true;
     expect(await register.hasRole(admin_role, deployer.address)).to.be.true;
-    expect(await register.hasRole(register_role, deployer.address)).to.be.true;
+    expect(await register.hasRole(register_manager_role, deployer.address)).to.be.true;
 
     expect(await stakingReward.manager()).to.be.eq(manager.address);
     expect(await register.manager()).to.be.eq(manager.address);
