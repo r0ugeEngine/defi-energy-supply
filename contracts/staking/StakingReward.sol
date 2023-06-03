@@ -68,18 +68,11 @@ contract StakingReward is AccessControl {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
     function enterStaking(
         address supplier,
         uint256 tokenId
-    )
-        external
-        onlyRole(STAKING_MANAGER_ROLE)
-        zeroAddressCheck(supplier)
-        isCorrectOwner(supplier, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(supplier) isCorrectOwner(supplier, tokenId) {
         totalSuppliers++;
         suppliers[supplier][tokenId] = Supplier({
             updatedAt: block.timestamp,
@@ -87,8 +80,6 @@ contract StakingReward is AccessControl {
         });
 
         emit EnterStaking(msg.sender, supplier, block.timestamp);
-
-        return true;
     }
 
     /**
@@ -99,21 +90,13 @@ contract StakingReward is AccessControl {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
     function sendRewards(
         address supplier,
         uint256 tokenId
-    )
-        external
-        onlyRole(STAKING_MANAGER_ROLE)
-        zeroAddressCheck(supplier)
-        isCorrectOwner(supplier, tokenId)
-        returns (bool)
-    {
+    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(supplier) isCorrectOwner(supplier, tokenId) {
         _sendRewards(supplier, tokenId);
         emit RewardSent(msg.sender, supplier, block.timestamp);
-        return true;
     }
 
     /**
@@ -124,19 +107,17 @@ contract StakingReward is AccessControl {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
     function exitStaking(
         address supplier,
         uint256 tokenId
-    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(supplier) returns (bool) {
+    ) external onlyRole(STAKING_MANAGER_ROLE) zeroAddressCheck(supplier) {
         _sendRewards(supplier, tokenId);
 
         totalSuppliers--;
         delete suppliers[supplier][tokenId];
 
         emit ExitStaking(msg.sender, supplier, block.timestamp);
-        return true;
     }
 
     /**

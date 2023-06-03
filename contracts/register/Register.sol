@@ -50,17 +50,15 @@ contract Register is AccessControl {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
     function registerSupplier(
         address supplier,
         uint256 tokenId
-    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) returns (bool) {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) {
         manager.NRGS().mint(supplier, tokenId);
         manager.staking().enterStaking(supplier, tokenId);
 
         emit SupplierRegistered(msg.sender, supplier, block.timestamp);
-        return true;
     }
 
     /**
@@ -72,17 +70,15 @@ contract Register is AccessControl {
      *
      * @param user address
      * @param tokenId uint256
-     * @return bool
      */
     function registerElectricityUser(
         address user,
         uint256 tokenId,
         address supplier
-    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) zeroAddressCheck(supplier) returns (bool) {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) zeroAddressCheck(supplier) {
         manager.ELU().mint(user, tokenId, supplier);
 
         emit UserRegistered(msg.sender, user, block.timestamp);
-        return true;
     }
 
     /**
@@ -94,17 +90,15 @@ contract Register is AccessControl {
      *
      * @param supplier address
      * @param tokenId uint256
-     * @return bool
      */
     function unRegisterSupplier(
         address supplier,
         uint256 tokenId
-    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) returns (bool) {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) {
         manager.NRGS().burn(tokenId);
         manager.staking().exitStaking(supplier, tokenId);
 
         emit SupplierUnregistered(msg.sender, supplier, block.timestamp);
-        return true;
     }
 
     /**
@@ -116,15 +110,13 @@ contract Register is AccessControl {
      *
      * @param user address
      * @param tokenId uint256
-     * @return bool
      */
     function unRegisterElectricityUser(
         address user,
         uint256 tokenId
-    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) returns (bool) {
+    ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) {
         manager.ELU().burn(tokenId);
 
         emit UserUnregistered(msg.sender, user, block.timestamp);
-        return true;
     }
 }

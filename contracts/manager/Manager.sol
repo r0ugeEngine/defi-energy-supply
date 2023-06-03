@@ -120,13 +120,11 @@ contract Manager is AccessControl, IManager {
      * - `_MCGR` must be not address 0
      *
      * @param _MCGR IMCGR
-     * @return bool
      */
-    function changeMCGR(IMCGR _MCGR) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_MCGR)) returns (bool) {
+    function changeMCGR(IMCGR _MCGR) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_MCGR)) {
         emit MCGRchanged(msg.sender, _MCGR);
 
         MCGR = _MCGR;
-        return true;
     }
 
     /**
@@ -136,13 +134,12 @@ contract Manager is AccessControl, IManager {
      * - `_NRGS` must be not address 0
      *
      * @param _NRGS INRGS
-     * @return bool
+
      */
-    function changeNRGS(INRGS _NRGS) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_NRGS)) returns (bool) {
+    function changeNRGS(INRGS _NRGS) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_NRGS)) {
         emit NRGSchanged(msg.sender, _NRGS);
 
         NRGS = _NRGS;
-        return true;
     }
 
     /**
@@ -152,13 +149,12 @@ contract Manager is AccessControl, IManager {
      * - `_ELU` must be not address 0
      *
      * @param _ELU IELU
-     * @return bool
+
      */
-    function changeELU(IELU _ELU) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_ELU)) returns (bool) {
+    function changeELU(IELU _ELU) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_ELU)) {
         emit ELUchanged(msg.sender, _ELU);
 
         ELU = _ELU;
-        return true;
     }
 
     /**
@@ -168,15 +164,13 @@ contract Manager is AccessControl, IManager {
      * - `_staking` must be not address 0
      *
      * @param _staking IStakingReward
-     * @return bool
      */
     function changeStakingContract(
         IStakingReward _staking
-    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_staking)) returns (bool) {
+    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_staking)) {
         emit StakingChanged(msg.sender, _staking);
 
         staking = _staking;
-        return true;
     }
 
     /**
@@ -186,15 +180,11 @@ contract Manager is AccessControl, IManager {
      * - `_oracle` must be not address 0
      *
      * @param _oracle IEnergyOracle
-     * @return bool
      */
-    function changeOracle(
-        IEnergyOracle _oracle
-    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_oracle)) returns (bool) {
+    function changeOracle(IEnergyOracle _oracle) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_oracle)) {
         emit OracleChanged(msg.sender, _oracle);
 
         oracle = _oracle;
-        return true;
     }
 
     /**
@@ -204,15 +194,11 @@ contract Manager is AccessControl, IManager {
      * - `_register` must be not address 0
      *
      * @param _register IRegister
-     * @return bool
      */
-    function changeRegister(
-        IRegister _register
-    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_register)) returns (bool) {
+    function changeRegister(IRegister _register) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_register)) {
         emit RegisterChanged(msg.sender, _register);
 
         register = _register;
-        return true;
     }
 
     /**
@@ -222,15 +208,11 @@ contract Manager is AccessControl, IManager {
      * - `_escrow` must be not address 0
      *
      * @param _escrow IEscrow
-     * @return bool
      */
-    function changeEscrow(
-        IEscrow _escrow
-    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_escrow)) returns (bool) {
+    function changeEscrow(IEscrow _escrow) external onlyRole(MANAGER_ROLE) zeroAddressCheck(address(_escrow)) {
         emit EscrowChanged(msg.sender, _escrow);
 
         escrow = _escrow;
-        return true;
     }
 
     /**
@@ -240,15 +222,13 @@ contract Manager is AccessControl, IManager {
      * - `_newFeeReceiver` must be not address 0
      *
      * @param _newFeeReceiver address
-     * @return bool
      */
     function changeFeeReceiver(
         address _newFeeReceiver
-    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(_newFeeReceiver) returns (bool) {
+    ) external onlyRole(MANAGER_ROLE) zeroAddressCheck(_newFeeReceiver) {
         emit FeeReceiverChanged(msg.sender, _newFeeReceiver);
 
         feeReceiver = _newFeeReceiver;
-        return true;
     }
 
     /**
@@ -258,15 +238,11 @@ contract Manager is AccessControl, IManager {
      * - `_newRewardAmount` must be > 0
      *
      * @param _newRewardAmount uint256
-     * @return bool
      */
-    function changeRewardAmount(
-        uint256 _newRewardAmount
-    ) external onlyRole(MANAGER_ROLE) gtZero(_newRewardAmount) returns (bool) {
+    function changeRewardAmount(uint256 _newRewardAmount) external onlyRole(MANAGER_ROLE) gtZero(_newRewardAmount) {
         emit RewardAmountChanged(msg.sender, _newRewardAmount);
 
         rewardAmount = _newRewardAmount;
-        return true;
     }
 
     /**
@@ -276,15 +252,11 @@ contract Manager is AccessControl, IManager {
      * - `_newTolerance` must be > 0
      *
      * @param _newTolerance uint256
-     * @return bool
      */
-    function changeTolerance(
-        uint256 _newTolerance
-    ) external onlyRole(MANAGER_ROLE) gtZero(_newTolerance) returns (bool) {
+    function changeTolerance(uint256 _newTolerance) external onlyRole(MANAGER_ROLE) gtZero(_newTolerance) {
         emit ToleranceChanged(msg.sender, _newTolerance);
 
         tolerance = _newTolerance;
-        return true;
     }
 
     /**
@@ -294,12 +266,10 @@ contract Manager is AccessControl, IManager {
      * - `_newFees` must be > 0
      *
      * @param _newFees uint256
-     * @return bool
      */
-    function changeFees(uint256 _newFees) external onlyRole(MANAGER_ROLE) gtZero(_newFees) returns (bool) {
+    function changeFees(uint256 _newFees) external onlyRole(MANAGER_ROLE) gtZero(_newFees) {
         emit FeesChanged(msg.sender, _newFees);
 
         fees = _newFees;
-        return true;
     }
 }
