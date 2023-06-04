@@ -12,8 +12,8 @@ contract MainMock {
         mcgr = _mcgr;
     }
 
-    function send(address user, uint256 tokenId, address supplier, uint256 paidAmount) public {
+    function send(address user, uint256 tokenId , uint256 paidAmount) public {
         mcgr.transferFrom(user, address(escrow), paidAmount);
-        escrow.sendFundsToSupplier(user, tokenId, supplier, paidAmount);
+        escrow.sendFundsToSupplier(user, tokenId, paidAmount);
     }
 }

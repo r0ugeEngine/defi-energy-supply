@@ -24,13 +24,11 @@ interface IRegister {
      * Requirements:
      * - `msg.sender` must have REGISTER_MANAGER_ROLE.
      * - `user` must not be address 0.
-     * - `supplier` must not be address 0.
      *
      * @param user The address of the user.
      * @param supplierId The ID of the supplier.
-     * @param supplier The address of the supplier.
      */
-    function registerElectricityUser(address user, uint256 supplierId, address supplier) external;
+    function registerElectricityUser(address user, uint256 supplierId) external;
 
     /**
      * @notice Unregisters an Energy supplier.
