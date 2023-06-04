@@ -10,18 +10,15 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * @author Bohdan
  */
 contract MCGR is ERC20, AccessControl {
-    /// @dev Keccak256 hashed `MINTER_ROLE` string
-    bytes32 public constant MINTER_ROLE = keccak256(bytes("MINTER_ROLE"));
-    /// @dev Keccak256 hashed `BURNER_ROLE` string
-    bytes32 public constant BURNER_ROLE = keccak256(bytes("BURNER_ROLE"));
+    /// @dev Keccak256 hashed `MINTER_BURNER_ROLE` string
+    bytes32 public constant MINTER_BURNER_ROLE = keccak256(bytes("MINTER_ROLE"));
 
     /// @notice Constructor to initialize ERC20 token contract
     /// @dev Grants each roles to `msg.sender`
     /// @dev Sets `name` and `symbol` of ERC20 token
     constructor() ERC20("Mictrogrid Reward token", "MCGR") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
-        _grantRole(BURNER_ROLE, msg.sender);
+        _grantRole(MINTER_BURNER_ROLE, msg.sender);
     }
 
     /**
@@ -32,7 +29,7 @@ contract MCGR is ERC20, AccessControl {
      * @param to address to mint
      * @param amount of tokens to mint
      */
-    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+    function mint(address to, uint256 amount) external onlyRole(MINTER_BURNER_ROLE) {
         _mint(to, amount);
     }
 
@@ -44,7 +41,7 @@ contract MCGR is ERC20, AccessControl {
      * @param from address to mint
      * @param amount of tokens to burn
      */
-    function burn(address from, uint256 amount) external onlyRole(BURNER_ROLE) {
+    function burn(address from, uint256 amount) external onlyRole(MINTER_BURNER_ROLE) {
         _burn(from, amount);
     }
 }
