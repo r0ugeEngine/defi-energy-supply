@@ -102,6 +102,8 @@ contract Register is AccessControl, ERC1155Holder {
         address supplier,
         uint256 supplierId
     ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(supplier) {
+        require(manager.NRGS().ownerOf(supplierId) == supplier, "Register: supplier is not correct");
+
         manager.NRGS().burn(supplierId);
 
         manager.staking().exitStaking(supplier, supplierId);
@@ -123,6 +125,8 @@ contract Register is AccessControl, ERC1155Holder {
         address user,
         uint256 supplierId
     ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) {
+        require(manager.ELU().balanceOf(user, supplierId) > 0, "Register: supplier is not correct");
+
         manager.ELU().burn(user, supplierId, 1);
 
         emit UserUnregistered(msg.sender, user, block.timestamp);
