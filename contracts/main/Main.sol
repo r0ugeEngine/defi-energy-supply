@@ -17,12 +17,6 @@ contract Main is AccessControl {
     /// @dev Manager contract
     IManager public manager;
 
-    /// @dev Throws if passed address 0 as parameter
-    modifier zeroAddressCheck(address account) {
-        require(account != address(0), "Main: zero address");
-        _;
-    }
-
     /// @dev Throws if passed value is <= 0
     modifier gtZero(uint256 value) {
         require(value > 0, "Main: value is <= 0");
@@ -49,7 +43,7 @@ contract Main is AccessControl {
      * @param supplierId The ID of the supplier.
      * @param buildingsNumber The number of buildings for the supplier.
      */
-    function registerSupplier(uint256 supplierId, uint256 buildingsNumber) external {
+    function registerSupplier(uint256 supplierId, uint256 buildingsNumber) external gtZero(buildingsNumber) {
         manager.register().registerSupplier(msg.sender, supplierId, buildingsNumber);
     }
 
@@ -57,13 +51,11 @@ contract Main is AccessControl {
      * @notice Registers an Electricity user.
      * Requirements:
      * - `supplierId` must be greater than 0.
-     * - `supplier` must not be address 0.
      *
      * @param supplierId The ID of the supplier.
-     * @param supplier The address of the supplier.
      */
-    function registerElectricityUser(uint256 supplierId, address supplier) external {
-        manager.register().registerElectricityUser(msg.sender, supplierId, supplier);
+    function registerElectricityUser(uint256 supplierId) external {
+        manager.register().registerElectricityUser(msg.sender, supplierId);
     }
 
     /**
@@ -92,15 +84,17 @@ contract Main is AccessControl {
      * @notice Pays for electricity.
      * Requirements:
      * - `supplierId` must be greater than 0.
-     * - `supplier` must not be address 0.
      * - `amountToPay` must be greater than 0.
      *
      * @param supplierId The ID of the supplier.
-     * @param supplier The address of the supplier.
      * @param amountToPay The amount to pay for electricity.
      */
-    function payForElectricity(uint256 supplierId, address supplier, uint256 amountToPay) external {
-        manager.escrow().sendFundsToSupplier(msg.sender, supplierId, supplier, amountToPay);
+    function payForElectricity(uint256 supplierId, uint256 amountToPay) external gtZero(amountToPay) {
+        require(
+            manager.MCGR().transferFrom(msg.sender, address(manager.escrow()), amountToPay + manager.fees()),
+            "Main: transfer to Escrow failed"
+        );
+        manager.escrow().sendFundsToSupplier(msg.sender, supplierId, amountToPay);
     }
 
     /**
