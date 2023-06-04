@@ -58,9 +58,9 @@ describe('Oracle', function () {
     const escrow: EscrowMock = (await EscrowMock.deploy(oracle.address)) as EscrowMock;
     await escrow.deployed();
 
-    minter_role = await mcgr.MINTER_ROLE();
-    burner_role = await mcgr.BURNER_ROLE();
     admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
+    minter_role = await mcgr.MINTER_BURNER_ROLE();
+
     energy_oracle_manager = await oracle.ENERGY_ORACLE_MANAGER_ROLE();
     oracle_provider = await oracle.ORACLE_PROVIDER_ROLE();
     escrow_role = await oracle.ESCROW();
@@ -84,7 +84,7 @@ describe('Oracle', function () {
     expect(await mcgr.hasRole(admin_role, deployer.address)).to.be.true;
     expect(await mcgr.hasRole(minter_role, deployer.address)).to.be.true;
     expect(await mcgr.hasRole(minter_role, oracle.address)).to.be.true;
-    expect(await mcgr.hasRole(burner_role, deployer.address)).to.be.true;
+
     expect(await oracle.hasRole(escrow_role, deployer.address)).to.be.true;
     expect(await oracle.hasRole(oracle_provider, deployer.address)).to.be.true;
     expect(await oracle.hasRole(energy_oracle_manager, deployer.address)).to.be.true;

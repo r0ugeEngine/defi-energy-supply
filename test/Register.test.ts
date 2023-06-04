@@ -9,7 +9,7 @@ import { staking } from '../typechain/contracts';
 
 describe('Register', function () {
   let otherAccAddress: string;
-  let admin_role: string, minter_role: string, burner_role: string, staking_role: string, register_manager_role: string, register_role: string;
+  let admin_role: string, minter_role: string, staking_role: string, register_manager_role: string, register_role: string;
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
@@ -56,9 +56,9 @@ describe('Register', function () {
     const register: Register = (await Register.deploy(manager.address)) as Register;
     await register.deployed();
 
-    minter_role = await mcgr.MINTER_ROLE();
-    burner_role = await mcgr.BURNER_ROLE();
     admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
+    minter_role = await mcgr.MINTER_BURNER_ROLE();
+
     staking_role = await stakingReward.STAKING_MANAGER_ROLE();
     register_role = await nrgs.REGISTER_ROLE();
     register_manager_role = await register.REGISTER_MANAGER_ROLE();
@@ -93,7 +93,6 @@ describe('Register', function () {
     expect(await mcgr.hasRole(admin_role, deployer.address)).to.be.true;
     expect(await mcgr.hasRole(minter_role, deployer.address)).to.be.true;
     expect(await mcgr.hasRole(minter_role, stakingReward.address)).to.be.true;
-    expect(await mcgr.hasRole(burner_role, deployer.address)).to.be.true;
 
     expect(await nrgs.hasRole(admin_role, deployer.address)).to.be.true;
     expect(await nrgs.hasRole(register_role, deployer.address)).to.be.true;
@@ -167,7 +166,7 @@ describe('Register', function () {
       const { register, elu, deployer, otherAcc } = await loadFixture(deployFixture);
       const registrationSupplier = await register.registerSupplier(deployer.address, 5, 10);
 
-      const registrationUser = await register.registerElectricityUser(otherAcc.address, 5, deployer.address);
+      const registrationUser = await register.registerElectricityUser(otherAcc.address, 5);
 
 
       expect(registrationUser).to.emit(register, 'UserRegistered');
@@ -179,7 +178,7 @@ describe('Register', function () {
       const { register, elu, deployer, otherAcc } = await loadFixture(deployFixture);
       const registrationSupplier = await register.registerSupplier(deployer.address, 5, 10);
 
-      const registrationUser = await register.registerElectricityUser(otherAcc.address, 5, deployer.address);
+      const registrationUser = await register.registerElectricityUser(otherAcc.address, 5);
 
 
       expect(registrationUser).to.emit(register, 'UserRegistered');
@@ -202,7 +201,7 @@ describe('Register', function () {
 
       await expect(register.connect(otherAcc).registerSupplier(deployer.address, 5, 10)).to.be.revertedWith(errorMsg);
       await expect(
-        register.connect(otherAcc).registerElectricityUser(otherAcc.address, 10, deployer.address),
+        register.connect(otherAcc).registerElectricityUser(otherAcc.address, 10),
       ).to.be.revertedWith(errorMsg);
       await expect(register.connect(otherAcc).unRegisterSupplier(otherAcc.address, 10)).to.be.revertedWith(errorMsg);
       await expect(register.connect(otherAcc).unRegisterElectricityUser(otherAcc.address, 10)).to.be.revertedWith(
@@ -216,8 +215,7 @@ describe('Register', function () {
       const errorMsg = 'Register: account is address 0';
 
       await expect(register.registerSupplier(addressZero, 10, 5)).to.be.revertedWith(errorMsg);
-      await expect(register.registerElectricityUser(addressZero, 10, deployer.address)).to.be.revertedWith(errorMsg);
-      await expect(register.registerElectricityUser(deployer.address, 10, addressZero)).to.be.revertedWith(errorMsg);
+      await expect(register.registerElectricityUser(addressZero, 10)).to.be.revertedWith(errorMsg);
       await expect(register.unRegisterSupplier(addressZero, 10)).to.be.revertedWith(errorMsg);
       await expect(register.unRegisterElectricityUser(addressZero, 10)).to.be.revertedWith(errorMsg);
     });
@@ -225,7 +223,7 @@ describe('Register', function () {
     it('Requires valid token id', async () => {
       const { register, deployer } = await loadFixture(deployFixture);
       const errorMsgForSupplier = 'ERC721: invalid token ID';
-      const errorMsgForUser = 'ERC1155: burn amount exceeds balance';
+      const errorMsgForUser = 'Register: supplier is not correct';
 
       await expect(register.unRegisterSupplier(deployer.address, 10)).to.be.revertedWith(errorMsgForSupplier);
       await expect(register.unRegisterElectricityUser(deployer.address, 10)).to.be.revertedWith(errorMsgForUser);
