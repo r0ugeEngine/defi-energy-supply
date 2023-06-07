@@ -124,7 +124,7 @@ contract Register is AccessControl, ERC1155Holder {
     ) external onlyRole(REGISTER_MANAGER_ROLE) zeroAddressCheck(user) {
         require(manager.ELU().balanceOf(user, supplierId) > 0, "Register: supplier is not correct");
 
-        manager.ELU().burn(user, supplierId, 1);
+        manager.ELU().safeTransferFrom(user, address(this), supplierId, 1, "");
 
         emit UserUnregistered(msg.sender, user, block.timestamp);
     }
