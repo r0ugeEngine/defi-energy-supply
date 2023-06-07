@@ -73,6 +73,8 @@ describe('Register', function () {
 
     await stakingReward.grantRole(staking_role, register.address);
 
+    await elu.connect(otherAcc).setApprovalForAll(register.address, true);
+
     return { mcgr, elu, ELU, nrgs, NRGS, manager, stakingReward, StakingReward, register, deployer, otherAcc };
   }
 
