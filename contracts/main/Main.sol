@@ -13,6 +13,10 @@ import "../manager/interfaces/IManager.sol";
 contract Main is AccessControl {
     /// @dev Keccak256 hashed `MAIN_MANAGER_ROLE` string
     bytes32 public constant MAIN_MANAGER_ROLE = keccak256(bytes("MAIN_MANAGER_ROLE"));
+    /// @dev Keccak256 hashed `SUPPLIER_ROLE` string
+    bytes32 public constant SUPPLIER_ROLE = keccak256(bytes("SUPPLIER_ROLE"));
+    /// @dev Keccak256 hashed `USER_ROLE` string
+    bytes32 public constant USER_ROLE = keccak256(bytes("USER_ROLE"));
 
     /// @dev Manager contract
     IManager public manager;
@@ -26,11 +30,13 @@ contract Main is AccessControl {
     /**
      * @notice Constructor to initialize the Main contract.
      * @param _manager The address of the Manager contract.
-     * @dev Grants `DEFAULT_ADMIN_ROLE` and `MAIN_MANAGER_ROLE` roles to the contract deployer.
+     * @dev Grants `DEFAULT_ADMIN_ROLE`, `MAIN_MANAGER_ROLE`,`SUPPLIER_ROLE` and `USER_ROLE` roles to the contract deployer.
      */
     constructor(IManager _manager) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MAIN_MANAGER_ROLE, msg.sender);
+        _grantRole(SUPPLIER_ROLE, msg.sender);
+        _grantRole(USER_ROLE, msg.sender);
         manager = _manager;
     }
 
@@ -39,45 +45,58 @@ contract Main is AccessControl {
      * Requirements:
      * - `supplierId` must be greater than 0.
      * - `buildingsNumber` must be greater than 0.
+     * - `msg.sender` must have `MAIN_MANAGER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      * @param buildingsNumber The number of buildings for the supplier.
      */
-    function registerSupplier(uint256 supplierId, uint256 buildingsNumber) external gtZero(buildingsNumber) {
-        manager.register().registerSupplier(msg.sender, supplierId, buildingsNumber);
+    function registerSupplier(
+        address supplier,
+        uint256 supplierId,
+        uint256 buildingsNumber
+    ) external onlyRole(MAIN_MANAGER_ROLE) gtZero(buildingsNumber) {
+        _grantRole(SUPPLIER_ROLE, supplier);
+        manager.register().registerSupplier(supplier, supplierId, buildingsNumber);
     }
 
     /**
      * @notice Registers an Electricity user.
      * Requirements:
      * - `supplierId` must be greater than 0.
+     * - `msg.sender` must have `SUPPLIER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      */
-    function registerElectricityUser(uint256 supplierId) external {
-        manager.register().registerElectricityUser(msg.sender, supplierId);
+    function registerElectricityUser(address user, uint256 supplierId) external onlyRole(SUPPLIER_ROLE) {
+        _grantRole(USER_ROLE, user);
+        manager.register().registerElectricityUser(user, supplierId);
     }
 
     /**
      * @notice Unregisters an Energy supplier.
      * Requirements:
      * - `supplierId` must be greater than 0.
+     * - `msg.sender` must have `MAIN_MANAGER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      */
-    function unRegisterSupplier(uint256 supplierId) external {
-        manager.register().unRegisterSupplier(msg.sender, supplierId);
+    function unRegisterSupplier(uint256 supplierId) external onlyRole(MAIN_MANAGER_ROLE) {
+        address supplier = manager.NRGS().ownerOf(supplierId);
+        _revokeRole(SUPPLIER_ROLE, supplier);
+        manager.register().unRegisterSupplier(supplier, supplierId);
     }
 
     /**
      * @notice Unregisters an Electricity user.
      * Requirements:
      * - `supplierId` must be greater than 0.
+     * - `msg.sender` must have `SUPPLIER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      */
-    function unRegisterElectricityUser(uint256 supplierId) external {
-        manager.register().unRegisterElectricityUser(msg.sender, supplierId);
+    function unRegisterElectricityUser(address user, uint256 supplierId) external onlyRole(SUPPLIER_ROLE) {
+        _revokeRole(SUPPLIER_ROLE, user);
+        manager.register().unRegisterElectricityUser(user, supplierId);
     }
 
     /**
@@ -85,11 +104,15 @@ contract Main is AccessControl {
      * Requirements:
      * - `supplierId` must be greater than 0.
      * - `amountToPay` must be greater than 0.
+     * - `msg.sender` must have `USER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      * @param amountToPay The amount to pay for electricity.
      */
-    function payForElectricity(uint256 supplierId, uint256 amountToPay) external gtZero(amountToPay) {
+    function payForElectricity(
+        uint256 supplierId,
+        uint256 amountToPay
+    ) external onlyRole(USER_ROLE) gtZero(amountToPay) {
         require(
             manager.MCGR().transferFrom(msg.sender, address(manager.escrow()), amountToPay + manager.fees()),
             "Main: transfer to Escrow failed"
@@ -101,10 +124,11 @@ contract Main is AccessControl {
      * @notice Gets the rewards for a supplier.
      * Requirements:
      * - `supplierId` must be greater than 0.
+     * - `msg.sender` must have `SUPPLIER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      */
-    function getRewards(uint256 supplierId) external {
+    function getRewards(uint256 supplierId) external onlyRole(SUPPLIER_ROLE) {
         manager.staking().sendRewards(msg.sender, supplierId);
     }
 }
