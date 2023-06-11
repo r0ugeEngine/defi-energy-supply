@@ -141,7 +141,7 @@ describe('Escrow', function () {
 
 		it('Zero address checks', async () => {
 			const { escrow, deployer } = await loadFixture(deployFixture);
-			const error = 'Escrow: account is address 0';
+			const error = 'Parent: account is address 0';
 			const address0 = ethers.constants.AddressZero;
 
 			await expect(escrow.sendFundsToSupplier(address0, 10, 5)).to.be.revertedWith(error);
@@ -149,7 +149,7 @@ describe('Escrow', function () {
 
 		it('Greater than zero Check', async () => {
 			const { escrow, deployer } = await loadFixture(deployFixture);
-			const error = 'Escrow: passed value is <= 0';
+			const error = 'Parent: passed value is <= 0';
 
 			await expect(escrow.sendFundsToSupplier(deployer.address, 10, 0)).to.be.revertedWith(error);
 		});

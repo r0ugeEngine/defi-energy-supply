@@ -296,7 +296,7 @@ describe('Main', function () {
 	it('Greater than zero modifier', async () => {
 		const { main, anotherAcc, } = await loadFixture(deployFixture);
 
-		const errorMsg = "Main: value is <= 0"
+		const errorMsg = "Parent: passed value is <= 0"
 		await expect(main.registerSupplier(anotherAcc.address, 10, 0)).to.revertedWith(errorMsg);
 		await expect(main.payForElectricity(10, 0)).to.revertedWith(errorMsg);
 	});

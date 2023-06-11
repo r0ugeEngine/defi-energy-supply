@@ -214,7 +214,7 @@ describe('Register', function () {
     it('Zero Address Check', async () => {
       const { register, deployer } = await loadFixture(deployFixture);
       const addressZero = ethers.constants.AddressZero;
-      const errorMsg = 'Register: account is address 0';
+      const errorMsg = 'Parent: account is address 0';
 
       await expect(register.registerSupplier(addressZero, 10, 5)).to.be.revertedWith(errorMsg);
       await expect(register.registerElectricityUser(addressZero, 10)).to.be.revertedWith(errorMsg);

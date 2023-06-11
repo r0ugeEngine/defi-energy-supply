@@ -267,7 +267,7 @@ describe('Oracle', function () {
 
     it('Zero address checks', async () => {
       const { oracle } = await loadFixture(deployFixture);
-      const error = 'EnergyOracle: account is address 0';
+      const error = 'Parent: account is address 0';
       const address0 = ethers.constants.AddressZero;
 
       await expect(oracle.recordEnergyConsumption(address0, 1, 50, 10)).to.be.revertedWith(error);

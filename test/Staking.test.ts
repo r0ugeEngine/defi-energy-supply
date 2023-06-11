@@ -206,7 +206,7 @@ describe('Staking', function () {
     it('Zero Address Check', async () => {
       const { stakingReward } = await loadFixture(deployFixture);
       const addressZero = ethers.constants.AddressZero;
-      const errorMsg = 'StakingReward: supplier is address 0';
+      const errorMsg = 'Parent: account is address 0';
 
       await expect(stakingReward.enterStaking(addressZero, 10)).to.be.revertedWith(errorMsg);
       await expect(stakingReward.sendRewards(addressZero, 10)).to.be.revertedWith(errorMsg);
