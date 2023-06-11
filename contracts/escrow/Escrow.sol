@@ -1,24 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-
-import "../manager/interfaces/IManager.sol";
+import "../Parent.sol";
 
 /**
  * @title Escrow
  * @dev A contract for managing energy payments and transfers between users and suppliers.
  * @author Bohdan
  */
-contract Escrow is AccessControl {
+contract Escrow is Parent {
     ///@dev Emmited when a user paid for energy
     event PaidForEnergy(address indexed user, uint256 indexed tokenId, address indexed supplier, uint256 amount);
 
     /// @dev Keccak256 hashed `ESCROW_MANAGER_ROLE` string
     bytes32 public constant ESCROW_MANAGER_ROLE = keccak256(bytes("ESCROW_MANAGER_ROLE"));
-
-    /// @dev Manager contract
-    IManager public manager;
 
     /// @dev Throws if passed address 0 as parameter
     modifier zeroAddressCheck(address account) {
@@ -37,10 +32,9 @@ contract Escrow is AccessControl {
      * @param _manager The address of the Manager contract.
      * @dev Grants `DEFAULT_ADMIN_ROLE` and `ESCROW_MANAGER_ROLE` roles to the contract deployer.
      */
-    constructor(IManager _manager) {
+    constructor(IManager _manager) Parent(_manager) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ESCROW_MANAGER_ROLE, msg.sender);
-        manager = _manager;
     }
 
     /**

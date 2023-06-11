@@ -1,25 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-
-import "../manager/interfaces/IManager.sol";
+import "../Parent.sol";
 
 /**
  * @title Main
  * @dev A main contract for managing Microgrid ecosystem.
  * @author Bohdan
  */
-contract Main is AccessControl {
+contract Main is Parent {
     /// @dev Keccak256 hashed `MAIN_MANAGER_ROLE` string
     bytes32 public constant MAIN_MANAGER_ROLE = keccak256(bytes("MAIN_MANAGER_ROLE"));
     /// @dev Keccak256 hashed `SUPPLIER_ROLE` string
     bytes32 public constant SUPPLIER_ROLE = keccak256(bytes("SUPPLIER_ROLE"));
     /// @dev Keccak256 hashed `USER_ROLE` string
     bytes32 public constant USER_ROLE = keccak256(bytes("USER_ROLE"));
-
-    /// @dev Manager contract
-    IManager public manager;
 
     /// @dev Throws if passed value is <= 0
     modifier gtZero(uint256 value) {
@@ -32,12 +27,11 @@ contract Main is AccessControl {
      * @param _manager The address of the Manager contract.
      * @dev Grants `DEFAULT_ADMIN_ROLE`, `MAIN_MANAGER_ROLE`,`SUPPLIER_ROLE` and `USER_ROLE` roles to the contract deployer.
      */
-    constructor(IManager _manager) {
+    constructor(IManager _manager) Parent(_manager) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MAIN_MANAGER_ROLE, msg.sender);
         _grantRole(SUPPLIER_ROLE, msg.sender);
         _grantRole(USER_ROLE, msg.sender);
-        manager = _manager;
     }
 
     /**

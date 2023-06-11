@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-import "../manager/interfaces/IManager.sol";
+import "../Parent.sol";
 
 struct EnergyConsumption {
     uint256 timestamp;
@@ -18,7 +17,7 @@ struct EnergyConsumption {
  * who can retrieve the consumption data.
  * @author Bohdan
  */
-contract EnergyOracle is AccessControl, Pausable {
+contract EnergyOracle is Parent, Pausable {
     ///@dev Emmited when an Oracle provider
     event EnergyConsumptionRecorded(
         address indexed sender,
@@ -51,9 +50,6 @@ contract EnergyOracle is AccessControl, Pausable {
     /// @dev Keccak256 hashed `ESCROW` string
     bytes32 public constant ESCROW = keccak256(bytes("ESCROW"));
 
-    /// @dev Manager contract
-    IManager public manager;
-
     /// @dev Mapping to store consumption
     mapping(address => mapping(uint256 => EnergyConsumption[])) private _energyConsumptions; // user => supplierId => id => EnergyConsumptions
     mapping(address => mapping(uint => mapping(uint256 => bool))) private consumedTimestamps;
@@ -72,13 +68,11 @@ contract EnergyOracle is AccessControl, Pausable {
 
     /// @notice Constructor to initialize StakingManagement contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `ENERGY_ORACLE_MANAGER_ROLE` and `ORACLE_PROVIDER_ROLE` roles to `msg.sender`
-    constructor(IManager _manager) {
+    constructor(IManager _manager) Parent(_manager) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ENERGY_ORACLE_MANAGER_ROLE, msg.sender);
         _grantRole(ORACLE_PROVIDER_ROLE, msg.sender);
         _grantRole(ESCROW, msg.sender);
-
-        manager = _manager;
     }
 
     /**

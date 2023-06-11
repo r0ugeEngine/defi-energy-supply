@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
-
 import "../math/FixedPointMath.sol";
-import "../manager/interfaces/IManager.sol";
+import "../Parent.sol";
 
 /**
  * @title StakingReward contract for rewards management
  * @author Bohdan
  */
-contract StakingReward is AccessControl {
+contract StakingReward is Parent {
     using FixedPointMath for uint256;
 
     ///@dev Emmited when a user registers as an Energy supplier
@@ -28,9 +26,6 @@ contract StakingReward is AccessControl {
 
     /// @dev Keccak256 hashed `STAKING_MANAGER_ROLE` string
     bytes32 public constant STAKING_MANAGER_ROLE = keccak256(bytes("STAKING_MANAGER_ROLE"));
-
-    /// @dev Manager contract
-    IManager public manager;
 
     /// @dev Total suppliers
     uint256 public totalSuppliers;
@@ -52,11 +47,9 @@ contract StakingReward is AccessControl {
 
     /// @notice Constructor to initialize StakingReward contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
-    constructor(IManager _manager) {
+    constructor(IManager _manager) Parent(_manager) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(STAKING_MANAGER_ROLE, msg.sender);
-
-        manager = _manager;
     }
 
     /**

@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-import "../manager/interfaces/IManager.sol";
+import "../Parent.sol";
 
 /**
  * @title Contract for registration of suppliers and users
  * @author Bohdan
  */
-contract Register is AccessControl, ERC1155Holder {
+contract Register is Parent, ERC1155Holder {
     ///@dev Emmited when a user registers as an Energy supplier
     event SupplierRegistered(address indexed sender, address indexed supplier, uint256 timestamp);
     ///@dev Emmited when a user unregisters as an Energy supplier
@@ -24,9 +23,6 @@ contract Register is AccessControl, ERC1155Holder {
     /// @dev Keccak256 hashed `REGISTER_MANAGER_ROLE` string
     bytes32 public constant REGISTER_MANAGER_ROLE = keccak256(bytes("REGISTER_MANAGER_ROLE"));
 
-    /// @dev Manager contract
-    IManager public manager;
-
     /// @dev Throws if passed address 0 as parameter
     modifier zeroAddressCheck(address account) {
         require(account != address(0), "Register: account is address 0");
@@ -35,11 +31,9 @@ contract Register is AccessControl, ERC1155Holder {
 
     /// @notice Constructor to initialize Register contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `REGISTER_MANAGER_ROLE` roles to `msg.sender`
-    constructor(IManager _manager) {
+    constructor(IManager _manager) Parent(_manager) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(REGISTER_MANAGER_ROLE, msg.sender);
-
-        manager = _manager;
     }
 
     /**
