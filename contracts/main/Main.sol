@@ -16,19 +16,12 @@ contract Main is Parent {
     /// @dev Keccak256 hashed `USER_ROLE` string
     bytes32 public constant USER_ROLE = keccak256(bytes("USER_ROLE"));
 
-    /// @dev Throws if passed value is <= 0
-    modifier gtZero(uint256 value) {
-        require(value > 0, "Main: value is <= 0");
-        _;
-    }
-
     /**
      * @notice Constructor to initialize the Main contract.
      * @param _manager The address of the Manager contract.
      * @dev Grants `DEFAULT_ADMIN_ROLE`, `MAIN_MANAGER_ROLE`,`SUPPLIER_ROLE` and `USER_ROLE` roles to the contract deployer.
      */
     constructor(IManager _manager) Parent(_manager) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MAIN_MANAGER_ROLE, msg.sender);
         _grantRole(SUPPLIER_ROLE, msg.sender);
         _grantRole(USER_ROLE, msg.sender);

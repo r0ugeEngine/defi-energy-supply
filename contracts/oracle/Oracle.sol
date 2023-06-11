@@ -55,12 +55,6 @@ contract EnergyOracle is Parent, Pausable {
     mapping(address => mapping(uint => mapping(uint256 => bool))) private consumedTimestamps;
 
     /// @dev Throws if passed address 0 as parameter
-    modifier zeroAddressCheck(address account) {
-        require(account != address(0), "EnergyOracle: account is address 0");
-        _;
-    }
-
-    /// @dev Throws if passed address 0 as parameter
     modifier isCorrectUser(address account, uint supplierId) {
         require(manager.ELU().balanceOf(account, supplierId) > 0, "EnergyOracle: user is not correct");
         _;
@@ -69,7 +63,6 @@ contract EnergyOracle is Parent, Pausable {
     /// @notice Constructor to initialize StakingManagement contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE`, `ENERGY_ORACLE_MANAGER_ROLE` and `ORACLE_PROVIDER_ROLE` roles to `msg.sender`
     constructor(IManager _manager) Parent(_manager) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ENERGY_ORACLE_MANAGER_ROLE, msg.sender);
         _grantRole(ORACLE_PROVIDER_ROLE, msg.sender);
         _grantRole(ESCROW, msg.sender);

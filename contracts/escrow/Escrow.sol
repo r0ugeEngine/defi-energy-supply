@@ -15,25 +15,12 @@ contract Escrow is Parent {
     /// @dev Keccak256 hashed `ESCROW_MANAGER_ROLE` string
     bytes32 public constant ESCROW_MANAGER_ROLE = keccak256(bytes("ESCROW_MANAGER_ROLE"));
 
-    /// @dev Throws if passed address 0 as parameter
-    modifier zeroAddressCheck(address account) {
-        require(account != address(0), "Escrow: account is address 0");
-        _;
-    }
-
-    /// @dev Throws if passed value is <= 0
-    modifier gtZero(uint256 value) {
-        require(value > 0, "Escrow: passed value is <= 0");
-        _;
-    }
-
     /**
      * @notice Constructor to initialize the Escrow contract
      * @param _manager The address of the Manager contract.
      * @dev Grants `DEFAULT_ADMIN_ROLE` and `ESCROW_MANAGER_ROLE` roles to the contract deployer.
      */
     constructor(IManager _manager) Parent(_manager) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ESCROW_MANAGER_ROLE, msg.sender);
     }
 

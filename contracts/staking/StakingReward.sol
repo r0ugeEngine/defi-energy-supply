@@ -33,12 +33,6 @@ contract StakingReward is Parent {
     /// @dev Address to supplier
     mapping(address => mapping(uint => Supplier)) public suppliers;
 
-    /// @dev Throws if passed address 0 as parameter
-    modifier zeroAddressCheck(address supplier) {
-        require(supplier != address(0), "StakingReward: supplier is address 0");
-        _;
-    }
-
     /// @dev Throws if passed not correct owner of tokenId
     modifier isCorrectOwner(address supplier, uint tokenId) {
         require(manager.NRGS().ownerOf(tokenId) == supplier, "StakingReward: supplier is not the owner of this token");
@@ -48,7 +42,6 @@ contract StakingReward is Parent {
     /// @notice Constructor to initialize StakingReward contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `STAKING_MANAGER_ROLE` roles to `msg.sender`
     constructor(IManager _manager) Parent(_manager) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(STAKING_MANAGER_ROLE, msg.sender);
     }
 

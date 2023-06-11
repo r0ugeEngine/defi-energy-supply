@@ -23,16 +23,9 @@ contract Register is Parent, ERC1155Holder {
     /// @dev Keccak256 hashed `REGISTER_MANAGER_ROLE` string
     bytes32 public constant REGISTER_MANAGER_ROLE = keccak256(bytes("REGISTER_MANAGER_ROLE"));
 
-    /// @dev Throws if passed address 0 as parameter
-    modifier zeroAddressCheck(address account) {
-        require(account != address(0), "Register: account is address 0");
-        _;
-    }
-
     /// @notice Constructor to initialize Register contract
     /// @dev Grants `DEFAULT_ADMIN_ROLE` and `REGISTER_MANAGER_ROLE` roles to `msg.sender`
     constructor(IManager _manager) Parent(_manager) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(REGISTER_MANAGER_ROLE, msg.sender);
     }
 
