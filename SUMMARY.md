@@ -1,5 +1,6 @@
 # Summary
 * contracts
+  * [Parent](docs/contracts/parent.md)
   * escrow
     * [Escrow](docs/contracts/escrow/escrow.md)
   * main
@@ -15,10 +16,9 @@
   * staking
     * [StakingReward](docs/contracts/staking/stakingreward.md)
   * tokens
+    * ERC1155
+      * [ELU](docs/contracts/tokens/erc1155/elu.md)
     * ERC20
       * [MCGR](docs/contracts/tokens/erc20/mcgr.md)
     * ERC721
-      * [ELU](docs/contracts/tokens/erc721/elu.md)
-      * [NFTTemplate](docs/contracts/tokens/erc721/nfttemplate.md)
       * [NRGS](docs/contracts/tokens/erc721/nrgs.md)
-    * [TokenRoles](docs/contracts/tokens/tokenroles.md)
