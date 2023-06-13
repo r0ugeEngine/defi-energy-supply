@@ -27,6 +27,9 @@ if (!process.env.ALCHEMY_API_KEY) {
 }
 
 const config: HardhatUserConfig = {
+  docgen: {
+    output: 'docs'
+  },
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
