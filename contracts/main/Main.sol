@@ -77,12 +77,12 @@ contract Main is Parent {
      * @notice Unregisters an Electricity user.
      * Requirements:
      * - `supplierId` must be greater than 0.
-     * - `msg.sender` must have `SUPPLIER_ROLE`.
+     * - `msg.sender` must have `USER_ROLE`.
      *
      * @param supplierId The ID of the supplier.
      */
     function unRegisterElectricityUser(address user, uint256 supplierId) external onlyRole(SUPPLIER_ROLE) {
-        _revokeRole(SUPPLIER_ROLE, user);
+        _revokeRole(USER_ROLE, user);
         manager.register().unRegisterElectricityUser(user, supplierId);
     }
 
