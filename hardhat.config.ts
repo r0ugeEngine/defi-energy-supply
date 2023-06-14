@@ -27,9 +27,6 @@ if (!process.env.ALCHEMY_API_KEY) {
 }
 
 const config: HardhatUserConfig = {
-  docgen: {
-    output: 'docs'
-  },
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
@@ -60,14 +57,14 @@ const config: HardhatUserConfig = {
     //   },
     // },
 
-    // mumbai: {
-    //   url: `https://polygon-mumbai.g.alchemy.com/v2/${alchemyApiKey}`,
-    //   accounts: [privateKey],
-    //   chainId: 80001,
-    //   // gas: 2100000,
-    //   // gasPrice: 8000000000,
-    //   gas: 'auto',
-    // },
+    mumbai: {
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${alchemyApiKey}`,
+      accounts: [privateKey],
+      chainId: 80001,
+      // gas: 2100000,
+      // gasPrice: 8000000000,
+      gas: 'auto',
+    },
 
     // polygon: {
     //   // url: 'https://matic-mumbai.chainstacklabs.com',
