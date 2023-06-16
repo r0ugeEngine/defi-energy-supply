@@ -1,133 +1,76 @@
 import hre, { ethers } from 'hardhat';
-import { DOTCManager, PermissionManagerV2, SwarmDOTCEscrow, TokenListManager } from 'typechain';
+import { ELU, EnergyOracle, Escrow, MCGR, Main, Manager, NRGS, Register, StakingReward } from '../typechain';
 
-const feeCollector = '0x4736725fdD5F58C4aca74426042442e71CB97ef1';
+const Main = '0xcF81B08cbCa47fcbB4669c002774c7C405AD67dD'
+const Manager = '0x61E0e280B1E05FCEfb684dd729cDe782fd98cd40';
+const Register = '0xE59474b146d750022c5E3C9376d74D0Ca31D7008'
 
-// MUMBAI
-// const TokenListManagerAddress = '0x68b2fF6Ae01d907c276fff3369e909D4Fc04887f';
-// const DOTCManagerAddress = '0x0a325407737Ca269A817252e63519CCa0E3CcA94';
-// const SwarmDOTCEscrowAddress = '0x340b5301CA73a96f31Fa292E0732afC6bAF0757a';
-// const PermissionManagerProxyAddress = '0xE03331388a20dD77f370dfb2f8AbAe1474B02ea0';
+const ELU = '0xd31f9437602E985c19a3Ee11B35d76F5d1DA4235';
+const MCGR = '0x2F176C9145DF9943f7ad31E4DEFC1290bDe54D32';
+const NRGS = '0xCd144d7bfE80D0300F1Ec64CbFc97109777F15Bc';
 
-// POLYGON
-// const TokenListManagerAddress = '0xd37FE9cF730cBa5eAFc97ca112247c340991D27D';
-// const DOTCManagerAddress = '0x667E3A192e5b7D02a7794CD11014adC1e24f96f9';
-// const SwarmDOTCEscrowAddress = '0xd3BB542dBd97aE85AE09048742C9089158254121';
-// const PermissionManagerProxyAddress = '0x2dDe22CbF81844492b5f29a2938ab075a8224Ef5';
+const Escrow = '0x26367A9c65d9627EFd0c5eb62B984A13941aaBb6'
+const EnergyOracle = '0xB99B7a11B0e6BF8F0220f7C4E9Bd5BA37d195da5'
+const StakingReward = '0xeCC73646565e17C253f230215a125E175476566b'
 
-// MAINNET
-const TokenListManagerAddress = '0x09e5a68c7800d85afa955cf7d7c29133d07ad1ef';
-const DOTCManagerAddress = '0x73AcB24A37340CC82e07DB1293FEa4FD5afa7a4a';
-const SwarmDOTCEscrowAddress = '0xb176f411ff4f4a74deb0ab03379c8af49be91d3e';
-const PermissionManagerProxyAddress = '0xE214d97ba7fF83144699737f73D271C006013d91';
-
-const ESCROW_SETUP = true;
-const TOKEN_MANAGER_SETUP = false;
-const DOTC_SETUP = true;
-
-//const IS_MAINNET_DEPLOYMENT = false;
-
-// const DEPLOY_NFT_DOTC_MANAGER = false;
+let admin_role: string, minter_role: string, escrow_manager: string, register_role: string, energy_oracle_manager_role: string, oracle_provider_role: string, _escrow_: string, register_manger_role: string, staking_manager_role: string, main_manager_role: string, supplier_role: string, user_role: string;
 
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   console.log('Deployer: ', deployer.address);
 
-  // const { SwarmDOTCEscrow, DOTCManager, TokenListManager, NFTDOTCManager, SMT, WETH, USDC, WBTC, DAI } =
-  //   await readDeploymentFile();
+  const mcgr: MCGR = await ethers.getContractAt('MCGR', MCGR);
+  const nrgs: NRGS = await ethers.getContractAt('NRGS', NRGS);
+  const elu: ELU = await ethers.getContractAt('ELU', ELU);
 
-  const tokenManager: TokenListManager = await ethers.getContractAt('TokenListManager', TokenListManagerAddress);
+  const main: Main = await ethers.getContractAt('Main', Main);
+  const register: Register = await ethers.getContractAt('Register', Register);
+  const manager: Manager = await ethers.getContractAt('Manager', Manager);
 
-  const dotcManager: DOTCManager = await ethers.getContractAt('DOTCManager', DOTCManagerAddress);
+  const escrow: Escrow = await ethers.getContractAt('Escrow', Escrow);
+  const oracle: EnergyOracle = await ethers.getContractAt('EnergyOracle', EnergyOracle);
+  const stakingReward: StakingReward = await ethers.getContractAt('StakingReward', StakingReward);
 
-  const escrow: SwarmDOTCEscrow = await ethers.getContractAt('SwarmDOTCEscrow', SwarmDOTCEscrowAddress);
 
-  const pmv2: PermissionManagerV2 = await ethers.getContractAt('PermissionManagerV2', PermissionManagerProxyAddress);
+  console.log("Manager set up");
+  await manager.changeOracle(oracle.address);
+  await manager.changeRegister(register.address);
+  await manager.changeEscrow(escrow.address);
+  await manager.changeStakingContract(stakingReward.address);
+  console.log("Done");
 
-  // let nftDOtcManager;
-  // if (NFTDOTCManager?.address) {
-  //   nftDOtcManager = new NftDotcManagerHelper();
-  //   await nftDOtcManager.useDeployedContract(NFTDOTCManager.address);
-  // }
+  admin_role = await mcgr.DEFAULT_ADMIN_ROLE();
+  minter_role = await mcgr.MINTER_BURNER_ROLE();
 
-  const escrowManagerRole = await dotcManager.ESCROW_MANAGER_ROLE();
-  const feeManagerRole = await dotcManager.FEE_MANAGER_ROLE();
-  const dotcAdminManagerRole = await dotcManager.dOTC_Admin_ROLE();
-  const perissionSetterManagerRole = await dotcManager.PERMISSION_SETTER_ROLE();
+  register_role = await nrgs.REGISTER_ROLE();
 
-  if (TOKEN_MANAGER_SETUP) {
-    console.log('Token manager grants TOKEN_MANAGER_ROLE to deployer');
-    await tokenManager.setRegistryManager(deployer.address);
-    console.log(`....Role granted`);
-  }
+  escrow_manager = await escrow.ESCROW_MANAGER_ROLE();
 
-  if (ESCROW_SETUP) {
-    console.log('Escrow manager grants EscrowManager role to deployer');
-    await escrow.setEscrowManager(DOTCManagerAddress);
-    console.log(`....Role granted`);
-  }
+  energy_oracle_manager_role = await oracle.ENERGY_ORACLE_MANAGER_ROLE();
+  oracle_provider_role = await oracle.ORACLE_PROVIDER_ROLE();
+  _escrow_ = await oracle.ESCROW();
 
-  if (DOTC_SETUP) {
-    console.log('dOTC manager grants roles to deployer');
-    await dotcManager.grantRole(escrowManagerRole, deployer.address);
-    await dotcManager.grantRole(feeManagerRole, deployer.address);
-    await dotcManager.grantRole(dotcAdminManagerRole, deployer.address);
-    await dotcManager.grantRole(perissionSetterManagerRole, deployer.address);
-    console.log(`....Role granted`);
+  register_manger_role = await register.REGISTER_MANAGER_ROLE();
 
-    console.log('Inititalization in dOTC');
-    await dotcManager.setEscrowAddress(SwarmDOTCEscrowAddress);
-    await dotcManager.setFeeAddress(feeCollector);
-    await dotcManager.setEscrowLinker();
-    console.log(`....Inititalized`);
+  staking_manager_role = await stakingReward.STAKING_MANAGER_ROLE();
 
-    console.log('Assign tier2 to the contracts');
-    await pmv2.assignSingleItem(2, DOTCManagerAddress);
-    await pmv2.assignSingleItem(2, SwarmDOTCEscrowAddress);
-    console.log(`....Assigned`);
-  }
-  // await nftDOtcManager?.grantNftEscrowManagerRole(deployer.address);
+  main_manager_role = await main.MAIN_MANAGER_ROLE();
+  supplier_role = await main.SUPPLIER_ROLE();
+  user_role = await main.USER_ROLE();
 
-  // if (IS_MAINNET_DEPLOYMENT) {
-  //   await dotcManager.grantDotcAdminRole(swarmManager[0]);
-  //   await dotcManager.grantDotcAdminRole(swarmManager[1]);
-  //   await dotcManager.grantPermissionSetterRole(swarmManager[0]);
-  //   await dotcManager.grantPermissionSetterRole(swarmManager[1]);
-  //   await dotcManager.grantEscrowManagerRole(swarmManager[0]);
-  //   await dotcManager.grantEscrowManagerRole(swarmManager[1]);
-  //   await dotcManager.grantFeeManagerRole(swarmManager[0]);
-  //   await dotcManager.grantFeeManagerRole(swarmManager[1]);
+  console.log("Granting roles")
+  await register.grantRole(register_manger_role, main.address);
+  await escrow.grantRole(escrow_manager, main.address);
+  await stakingReward.grantRole(staking_manager_role, main.address);
+  await stakingReward.grantRole(staking_manager_role, register.address);
+  await oracle.grantRole(oracle_provider_role, main.address);
+  await oracle.grantRole(_escrow_, escrow.address);
 
-  //   await nftDOtcManager?.grantNftEscrowManagerRole(swarmManager[0]);
-  //   await nftDOtcManager?.grantNftEscrowManagerRole(swarmManager[1]);
-  // }
-
-  // if (DEPLOY_NFT_DOTC_MANAGER && nftDOtcManager) {
-  //   await escrow.setNFTEscrowManager(nftDOtcManager.address);
-  // }
-
-  // startLog('Running initialization');
-
-  // await nftDOtcManager?.setNftEscrowAddress(escrow.address);
-  // await nftDOtcManager?.setNftEscrowLinker();
-  // stopLog(`....Contract Initialized`);
-
-  // if (IS_MAINNET_DEPLOYMENT) {
-  //   await tokenManager.grantDefaultAdminRole(swarmManager[1]);
-  //   await dotcManager.grantDefaultAdminRole(swarmManager[1]);
-  //   await escrow.grantDefaultAdminRole(swarmManager[1]);
-  //   await nftDOtcManager?.grantDefaultAdminRole(swarmManager[1]);
-
-  //   await dotcManager.revokeEscrowManagerRole(deployer.address);
-  //   await dotcManager.revokeDotcAdminRole(deployer.address);
-  //   await dotcManager.revokeFeeManagerRole(deployer.address);
-  //   await nftDOtcManager?.revokeNftEscrowManagerRole(deployer.address);
-
-  //   await tokenManager.revokeDefaultAdminRole(deployer.address);
-  //   await dotcManager.revokeDefaultAdminRole(deployer.address);
-  //   await escrow.revokeDefaultAdminRole(deployer.address);
-  //   await nftDOtcManager?.revokeDefaultAdminRole(deployer.address);
-  // }
+  await elu.grantRole(register_role, register.address);
+  await nrgs.grantRole(register_role, register.address);
+  await mcgr.grantRole(minter_role, stakingReward.address);
+  await mcgr.grantRole(minter_role, oracle.address);
+  console.log("Done");
 }
 
 main()
