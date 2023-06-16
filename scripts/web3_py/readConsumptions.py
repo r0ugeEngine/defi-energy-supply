@@ -14,7 +14,7 @@ abi = abi = '[{"inputs":[{"internalType":"address","name":"user","type":"address
 address = '0xB99B7a11B0e6BF8F0220f7C4E9Bd5BA37d195da5'
 contract = w3.eth.contract(address=address,abi=abi)
 
-user = input('User address')
+user = input('User address: ')
 supplierId = int(input('Supplier ID: '))
 idOfRecord = int(input('ID of record: '))
 
