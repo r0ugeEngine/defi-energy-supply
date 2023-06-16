@@ -52,14 +52,14 @@ yarn install
 
 3. Interaction with the system
 
-`yarn clean`: Removes the build artifacts.
-`yarn compile`: Compiles the smart contracts.
-`yarn recompile`: Cleans and then compiles the smart contracts.
-`yarn test`: Run the smart contract tests.
-`yarn coverage`: Generates code coverage report for the smart contracts.
-`yarn docgen`: Generates documentation for the smart contracts.
-`yarn size`: Calculates the size of the compiled smart contracts.
-`yarn run:script`: Deploys the contracts with specific script.
+- `yarn clean`: Removes the build artifacts.
+- `yarn compile`: Compiles the smart contracts.
+- `yarn recompile`: Cleans and then compiles the smart contracts.
+- `yarn test`: Run the smart contract tests.
+- `yarn coverage`: Generates code coverage report for the smart contracts.
+- `yarn docgen`: Generates documentation for the smart contracts.
+- `yarn size`: Calculates the size of the compiled smart contracts.
+- `yarn run:script`: Deploys the contracts with specific script.
 
 ## Contributing
 
