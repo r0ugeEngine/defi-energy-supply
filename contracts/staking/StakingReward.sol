@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../math/FixedPointMath.sol";
 import "../Parent.sol";
 
 /**
@@ -9,8 +8,6 @@ import "../Parent.sol";
  * @author Bohdan
  */
 contract StakingReward is Parent {
-    using FixedPointMath for uint256;
-
     ///@dev Emmited when a user registers as an Energy supplier
     event EnterStaking(address indexed sender, address indexed supplier, uint256 timestamp);
     ///@dev Emmited when a user unregisters as an Energy supplier
@@ -146,6 +143,6 @@ contract StakingReward is Parent {
     function _updateRewardRate(uint _updatedAt) private view returns (uint256 rewardToUser) {
         uint timePassed = block.timestamp - _updatedAt;
 
-        rewardToUser = manager.rewardAmount().mulDiv(timePassed, totalSuppliers);
+        rewardToUser = (manager.rewardAmount() * timePassed) / totalSuppliers;
     }
 }
