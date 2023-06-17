@@ -46,10 +46,6 @@ describe('Oracle', function () {
     )) as Manager;
     await manager.deployed();
 
-    const FixedPointMath: ContractFactory = await ethers.getContractFactory('FixedPointMath');
-    const fixedPoint: FixedPointMath = (await FixedPointMath.deploy()) as FixedPointMath;
-    await fixedPoint.deployed();
-
     const Oracle: ContractFactory = await ethers.getContractFactory('EnergyOracle');
     const oracle: EnergyOracle = (await Oracle.deploy(manager.address)) as EnergyOracle;
     await oracle.deployed();

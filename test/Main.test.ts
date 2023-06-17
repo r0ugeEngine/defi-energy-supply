@@ -45,13 +45,7 @@ describe('Main', function () {
 		const oracle: EnergyOracle = (await EnergyOracle.deploy(manager.address)) as EnergyOracle;
 		await oracle.deployed();
 
-		const FixedPointMath: ContractFactory = await ethers.getContractFactory('FixedPointMath');
-		const fixedPoint: FixedPointMath = (await FixedPointMath.deploy()) as FixedPointMath;
-		await fixedPoint.deployed();
-
-		const StakingReward: ContractFactory = await ethers.getContractFactory('StakingReward', {
-			libraries: { FixedPointMath: fixedPoint.address },
-		});
+		const StakingReward: ContractFactory = await ethers.getContractFactory('StakingReward');
 		const stakingReward: StakingReward = (await StakingReward.deploy(manager.address)) as StakingReward;
 		await stakingReward.deployed();
 

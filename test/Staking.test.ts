@@ -29,10 +29,6 @@ describe('Staking', function () {
     const elu: ELU = (await ELU.deploy()) as ELU;
     await elu.deployed();
 
-    const FixedPointMath: ContractFactory = await ethers.getContractFactory('FixedPointMath');
-    const fixedPoint: FixedPointMath = (await FixedPointMath.deploy()) as FixedPointMath;
-    await fixedPoint.deployed();
-
     const Manager: ContractFactory = await ethers.getContractFactory('Manager');
     const manager: Manager = (await Manager.deploy(
       mcgr.address,
@@ -45,9 +41,7 @@ describe('Staking', function () {
     )) as Manager;
     await manager.deployed();
 
-    const StakingReward: ContractFactory = await ethers.getContractFactory('StakingReward', {
-      libraries: { FixedPointMath: fixedPoint.address },
-    });
+    const StakingReward: ContractFactory = await ethers.getContractFactory('StakingReward');
     const stakingReward: StakingReward = (await StakingReward.deploy(manager.address)) as StakingReward;
     await stakingReward.deployed();
 
@@ -62,16 +56,15 @@ describe('Staking', function () {
 
     await mcgr.grantRole(minter_role, stakingReward.address);
 
-    return { mcgr, MCGR, nrgs, NRGS, register, stakingReward, fixedPoint, manager, deployer, otherAcc };
+    return { mcgr, MCGR, nrgs, NRGS, register, stakingReward, manager, deployer, otherAcc };
   }
 
   it('Deployed correctly', async () => {
-    const { mcgr, nrgs, stakingReward, fixedPoint, manager, deployer } = await loadFixture(deployFixture);
+    const { mcgr, nrgs, stakingReward, manager, deployer } = await loadFixture(deployFixture);
 
     expect(mcgr.address).to.be.properAddress;
     expect(stakingReward.address).to.be.properAddress;
     expect(nrgs.address).to.be.properAddress;
-    expect(fixedPoint.address).to.be.properAddress;
 
     expect(await mcgr.name()).to.be.eq('Mictrogrid Reward token');
     expect(await mcgr.symbol()).to.be.eq('MCGR');
