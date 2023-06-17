@@ -41,7 +41,7 @@
   "scripts": {
     "clean": "hardhat clean",
     "compile": "hardhat compile",
-    "recompile": "clean compile",
+    "recompile": "hardhat clean && hardhat compile",
     "test": "hardhat test",
     "run:script": "yarn hardhat run scripts/",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js --temp artifacts --testfiles \"./test/**/*.ts\"",
