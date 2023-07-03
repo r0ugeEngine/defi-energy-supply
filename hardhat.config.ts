@@ -1,6 +1,6 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
-import 'hardhat-docgen';
+import 'solidity-docgen';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -80,19 +80,7 @@ const config: HardhatUserConfig = {
     //   // gas: 7000000,
     //   gasPrice: 1000000000000,
     // },
-    // goerli: {
-    //   url: `https://eth-goerli.g.alchemy.com/v2/${alchemyApiKey}`,
-    //   accounts: {
-    //     count: 10,
-    //     initialIndex: 0,
-    //     mnemonic,
-    //     path: "m/44'/60'/0'/0",
-    //   },
-    //   chainId: 5,
-    //   // gas: 2100000,
-    //   // gasPrice: 8000000000,
-    //   gas: 'auto',
-    // },
+
   },
   paths: {
     artifacts: './artifacts',
@@ -129,10 +117,10 @@ const config: HardhatUserConfig = {
     apiKey: process.env.ETHERSCAN_API_ID || process.env.MATIC_API_ID,
   },
   docgen: {
-    path: './docgen',
-    clear: true,
-    runOnCompile: true,
-    except: [],
+    // path: './docs',
+    // clear: true,
+    // runOnCompile: true,
+    pages: "files"
   },
 };
 
